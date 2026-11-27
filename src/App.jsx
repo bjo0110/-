@@ -21,7 +21,7 @@ const MAX_WATCHLIST = 50;
 const UI_TEXT = {
   ko: {
     title: 'S&P 500 실시간 실적발표 허브',
-    subtitle: '실적 일정 조회 · GICS 섹터 필터 · 실제 어닝콜 기반 AI 심층 요약',
+    subtitle: '실적 일정 조회 · GICS 섹터 필터 · 다국어 AI 어닝콜 심층 요약',
     searchPlaceholder: '티커 또는 기업명 검색 (예: AAPL, NVDA, DE, JPM)',
     searchBtn: '실시간 조회',
     searching: '조회 중...',
@@ -36,11 +36,11 @@ const UI_TEXT = {
     revEst: '매출 예상',
     revAct: '매출 실제',
     surprise: '어닝 서프라이즈',
-    aiSummaryBtn: '실제 어닝콜 AI 요약',
-    aiSummaryTitle: '실제 어닝콜(Earnings Call) AI 심층 요약',
-    aiLoading: '구글 검색으로 실제 실적 공시 및 컨퍼런스콜 발언을 수집·분석 중입니다...',
+    aiSummaryBtn: 'AI 어닝콜 요약',
+    aiSummaryTitle: '어닝콜(Earnings Call) AI 심층 요약',
+    aiLoading: '실적 수치와 핵심 사업부 전략을 심층 분석 중입니다...',
     noApiKey:
-      'VITE_GEMINI_API_KEY가 아직 빌드에 반영되지 않았습니다. Vercel Settings → Environment Variables에 키를 저장한 뒤 Deployments에서 Redeploy를 실행해 주세요.',
+      'VITE_GEMINI_API_KEY가 아직 빌드에 반영되지 않았습니다. Vercel Settings → Environment Variables에 무료 API 키를 저장한 뒤 Deployments에서 Redeploy를 실행해 주세요.',
     watchlistFull: `관심목록은 최대 ${MAX_WATCHLIST}개까지 등록할 수 있습니다. 기존 종목을 해제한 뒤 추가해 주세요.`,
     addWatchlist: '관심 추가',
     inWatchlist: '관심 등록됨',
@@ -60,7 +60,7 @@ const UI_TEXT = {
   },
   en: {
     title: 'S&P 500 Earnings Hub',
-    subtitle: 'Earnings Schedule · Sector Filter · Deep AI Earnings Call Summaries',
+    subtitle: 'Earnings Schedule · Sector Filter · Multilingual AI Call Summaries',
     searchPlaceholder: 'Search ticker or company (e.g. AAPL, NVDA, DE, JPM)',
     searchBtn: 'Live Lookup',
     searching: 'Looking up...',
@@ -75,11 +75,11 @@ const UI_TEXT = {
     revEst: 'Rev. Est.',
     revAct: 'Rev. Act.',
     surprise: 'Surprise',
-    aiSummaryBtn: 'Deep AI Call Summary',
+    aiSummaryBtn: 'AI Call Summary',
     aiSummaryTitle: 'AI Earnings Call Deep Summary',
-    aiLoading: 'Searching earnings release and conference call transcript highlights...',
+    aiLoading: 'Analyzing earnings metrics and key conference call takeaways...',
     noApiKey:
-      'VITE_GEMINI_API_KEY is not active in this build. Save it in Vercel Environment Variables and trigger Redeploy.',
+      'VITE_GEMINI_API_KEY is not active in this build. Save your free API key in Vercel Environment Variables and trigger Redeploy.',
     watchlistFull: `Watchlist supports up to ${MAX_WATCHLIST} stocks. Remove an item before adding another.`,
     addWatchlist: 'Watch',
     inWatchlist: 'Watching',
@@ -99,7 +99,7 @@ const UI_TEXT = {
   },
   ja: {
     title: 'S&P 500 決算スケジュールハブ',
-    subtitle: '決算日程検索 · セクター絞り込み · 実際の決算コールAI詳細要約',
+    subtitle: '決算日程検索 · セクター絞り込み · 多言語AI決算コール詳細要約',
     searchPlaceholder: 'ティッカーまたは企業名で検索 (例: AAPL, NVDA, DE, JPM)',
     searchBtn: 'リアルタイム検索',
     searching: '検索中...',
@@ -116,7 +116,7 @@ const UI_TEXT = {
     surprise: 'サプライズ',
     aiSummaryBtn: 'AI 決算コール要約',
     aiSummaryTitle: 'AI 決算コール詳細要約',
-    aiLoading: '決算発表とカンファレンスコール発言を検索・分析中...',
+    aiLoading: '決算数値と主要事業の戦略ポイントを分析中...',
     noApiKey:
       'VITE_GEMINI_API_KEY がビルドに反映されていません。Vercelの環境変数設定後に Redeploy を実行してください。',
     watchlistFull: `ウォッチリストは最大${MAX_WATCHLIST}件まで登録できます。解除してから追加してください。`,
@@ -138,7 +138,7 @@ const UI_TEXT = {
   },
   zh: {
     title: '标普500财报日历中心',
-    subtitle: '财报日程查询 · 行业筛选 · 真实电话会议AI深度摘要',
+    subtitle: '财报日程查询 · 行业筛选 · 多语言AI电话会议深度摘要',
     searchPlaceholder: '搜索代码或公司名称（如 AAPL, NVDA, DE, JPM）',
     searchBtn: '实时查询',
     searching: '查询中...',
@@ -154,8 +154,8 @@ const UI_TEXT = {
     revAct: '营收 实际',
     surprise: '业绩超预期',
     aiSummaryBtn: 'AI 电话会深度摘要',
-    aiSummaryTitle: '真实财报电话会议 AI 深度摘要',
-    aiLoading: '正在检索财报公告与电话会议管理层发言并生成深度分析...',
+    aiSummaryTitle: '财报电话会议 AI 深度摘要',
+    aiLoading: '正在深度分析财报数据与核心业务要点...',
     noApiKey:
       'VITE_GEMINI_API_KEY 尚未生效。请在 Vercel 环境变量中保存密钥后执行 Redeploy。',
     watchlistFull: `自选股最多支持${MAX_WATCHLIST}只股票，请先取消一项后再添加。`,
@@ -177,7 +177,7 @@ const UI_TEXT = {
   },
   es: {
     title: 'Centro de Resultados S&P 500',
-    subtitle: 'Calendario de Ganancias · Filtros por Sector · Análisis IA de Llamadas',
+    subtitle: 'Calendario de Ganancias · Filtros por Sector · Análisis IA Multilingüe',
     searchPlaceholder: 'Buscar ticker o empresa (ej. AAPL, NVDA, DE, JPM)',
     searchBtn: 'Consulta en vivo',
     searching: 'Consultando...',
@@ -194,7 +194,7 @@ const UI_TEXT = {
     surprise: 'Sorpresa',
     aiSummaryBtn: 'Resumen IA Detallado',
     aiSummaryTitle: 'Análisis Profundo IA de la Llamada',
-    aiLoading: 'Buscando comunicados y declaraciones de la conferencia de resultados...',
+    aiLoading: 'Analizando métricas de resultados y puntos clave de la llamada...',
     noApiKey:
       'VITE_GEMINI_API_KEY no está activa en esta compilación. Guárdala en Vercel y ejecuta Redeploy.',
     watchlistFull: `La lista de seguimiento admite hasta ${MAX_WATCHLIST} acciones. Quita una antes de añadir otra.`,
@@ -296,13 +296,11 @@ function curateEarningsList(items) {
 
   const allUnique = Array.from(dedupedMap.values());
 
-  // 예정: 빠른 날짜 순(오름차순) 30개
   const upcomingSorted = allUnique
     .filter((item) => item.status === 'upcoming')
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, LIMIT_PER_STATUS);
 
-  // 발표완료: 최근 날짜 순(내림차순) 30개
   const reportedSorted = allUnique
     .filter((item) => item.status === 'reported')
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -315,6 +313,7 @@ function curateEarningsList(items) {
   };
 }
 
+// 무료 등급(Free Tier) 호환: google_search 도구를 제외해 429 차단을 방지
 async function generateGeminiText(apiKey, prompt) {
   const cleanKey = (apiKey || '').trim();
   if (!cleanKey) {
@@ -330,7 +329,10 @@ async function generateGeminiText(apiKey, prompt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      tools: [{ google_search: {} }],
+      generationConfig: {
+        temperature: 0.35,
+        maxOutputTokens: 1600,
+      },
     }),
   });
 
@@ -469,7 +471,7 @@ export default function App() {
 
     setIsSearching(true);
     try {
-      const prompt = `Search Google for the latest or upcoming quarterly earnings release details of S&P 500 stock "${rawQuery}".
+      const prompt = `Provide quarterly earnings schedule and consensus/reported figures for S&P 500 stock "${rawQuery}".
 Return ONLY a valid JSON object (no markdown fences) with these exact keys:
 {
   "ticker": "UPPERCASE TICKER",
@@ -488,7 +490,7 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       const text = await generateGeminiText(apiKey, prompt);
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('검색 결과에서 종목 JSON 형식을 파싱하지 못했습니다.');
+        throw new Error('응답에서 종목 JSON 형식을 파싱하지 못했습니다.');
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
@@ -512,7 +514,7 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
         setStatusFilter('all');
       }
     } catch (err) {
-      setErrorMsg(err?.message || '실시간 종목 조회 중 오류가 발생했습니다.');
+      setErrorMsg(err?.message || '종목 조회 중 오류가 발생했습니다.');
     } finally {
       setIsSearching(false);
     }
@@ -539,28 +541,34 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       };
       const targetLang = langNames[lang] || 'Korean (한국어)';
 
+      const metricsContext = `Company: ${item.company} (${item.ticker}), GICS Sector: ${item.sector}, Earnings Date: ${item.date} (${item.timing}), Status: ${item.status}, EPS Est: ${item.epsEst}, EPS Act: ${item.epsAct}, Revenue Est: ${item.revEst}, Revenue Act: ${item.revAct}, Earnings Surprise: ${item.surprise}.`;
+
       const prompt =
         item.status === 'reported'
-          ? `Use Google Search to find the actual Q3/Q4 earnings release and earnings conference call transcript highlights for ${item.company} (${item.ticker}) around ${item.date}.
-Write a thorough, structured earnings call summary strictly in ${targetLang} covering these 5 sections with specific numbers and executive commentary:
-1. [실적 핵심 수치 및 서프라이즈 요인] (Actual Revenue, EPS, YoY growth, and what beat or missed consensus)
-2. [사업부별 세부 성과] (Segment revenue breakdown, volume/pricing trends, regional demand)
-3. [경영진 어닝콜 주요 발언 (CEO/CFO)] (Key strategic priorities, AI/CapEx/cost-saving remarks from the call)
-4. [차기 분기 및 연간 가이던스] (Updated revenue/EPS/margin guidance and outlook)
-5. [애널리스트 Q&A 핵심 쟁점 및 리스크] (Main questions raised by Wall Street analysts on the call and management's response)`
-          : `Use Google Search to find the latest Wall Street consensus, management prior guidance, and key preview catalysts for ${item.company} (${item.ticker}) ahead of its upcoming earnings report on ${item.date}.
-Write a thorough, structured earnings preview strictly in ${targetLang} covering these 5 sections:
-1. [컨센서스 및 직전 분기 대비 기대치] (EPS/Revenue consensus vs prior quarter and year-ago figures)
-2. [핵심 관전 포인트 및 사업부별 체크리스트] (Key segments, product launches, or margin drivers to watch)
-3. [직전 어닝콜 경영진 가이던스 복기] (What CEO/CFO previously guided for this quarter)
-4. [주요 리스크 및 매크로 변수] (FX, tariffs, input costs, or competitive headwinds)
-5. [실적 발표 후 주가 변동 핵심 트리거] (What metric or guidance revision will move the stock)`;
+          ? `You are a senior Wall Street equity research analyst. Analyze the earnings release and earnings call takeaways for the following company using both the exact figures provided below and your institutional knowledge of the company's business segments, margin structure, and management strategy:
+${metricsContext}
+
+Write a detailed, well-structured earnings call analysis strictly in ${targetLang} covering these 5 sections with specific bullet points:
+1. [실적 핵심 수치 및 서프라이즈 해석] (Analyze the reported EPS ${item.epsAct} vs Est ${item.epsEst}, Revenue ${item.revAct} vs Est ${item.revEst}, and surprise ${item.surprise})
+2. [핵심 사업부별 매출 동인 및 수요 흐름] (Break down key operating segments, pricing vs volume dynamics, and end-market demand)
+3. [경영진 어닝콜 핵심 전략 및 마진 포인트] (Operating margin drivers, cost discipline, CapEx / AI / R&D capital allocation priorities)
+4. [차기 분기 가이던스 및 중장기 체크포인트] (Key forward-looking indicators, backlog/order trends, and guidance sensitivity)
+5. [월가 애널리스트 Q&A 핵심 쟁점 및 리스크] (Main institutional investor questions, competitive threats, macro/FX/tariff headwinds)`
+          : `You are a senior Wall Street equity research analyst. Prepare a comprehensive earnings call preview for the following company using the consensus figures provided below and your institutional knowledge of the company's business segments and strategic catalysts:
+${metricsContext}
+
+Write a detailed, well-structured earnings preview strictly in ${targetLang} covering these 5 sections with specific bullet points:
+1. [컨센서스 기대치 및 실적 눈높이 분석] (Evaluate EPS Est ${item.epsEst} and Revenue Est ${item.revEst} relative to seasonal and industry expectations)
+2. [핵심 사업부별 관전 포인트] (Which segments and KPIs institutional investors will scrutinize first)
+3. [경영진 어닝콜 주요 주목 발언 예상] (Key strategic themes around margins, pricing power, CapEx, and demand visibility)
+4. [가이던스 상향/하향 시나리오] (What guidance metrics will trigger positive or negative post-earnings stock reaction)
+5. [주요 리스크 요인 및 애널리스트 Q&A 쟁점] (Macro headwinds, cost pressures, and key questions expected on the call)`;
 
       const result = await generateGeminiText(apiKey, prompt);
       setSummaryText(result);
     } catch (err) {
       setSummaryError(
-        `${err?.message || '실제 어닝콜 요약 호출 실패'}\n\n※ Vercel 대시보드 → Settings → Environment Variables에 VITE_GEMINI_API_KEY가 올바르게 저장되어 있는지와 Deployments에서 Redeploy가 완료되었는지 확인해 주세요.`
+        `${err?.message || 'AI 요약 호출 실패'}\n\n※ 무료 등급 API 키가 아직 활성화되지 않았거나 분당 요청 한도(RPM)에 도달했을 수 있습니다. 1분 후 다시 시도하거나 Google AI Studio에서 무료 프로젝트 API 키 상태를 확인해 주세요.`
       );
     } finally {
       setIsSummarizing(false);
