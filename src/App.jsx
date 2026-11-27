@@ -20,11 +20,11 @@ const UI_TEXT = {
     searchPlaceholder: '티커 또는 기업명 검색 (예: AAPL, NVDA, JPM)',
     searchBtn: '실시간 조회',
     searching: '조회 중...',
-    all: '전체',
-    upcoming: '예정 (빠른 순 최대 30개)',
-    reported: '발표완료 (최근 순 최대 30개)',
+    all: '전체 (60)',
+    upcoming: '예정 (빠른 순 30개)',
+    reported: '발표완료 (최근 순 30개)',
     allSectors: '전체 섹터',
-    refreshAll: '일정 새로고침',
+    refreshAll: '일정 초기화',
     epsEst: 'EPS 예상',
     epsAct: 'EPS 실제',
     revEst: '매출 예상',
@@ -34,7 +34,7 @@ const UI_TEXT = {
     aiSummaryTitle: 'AI 어닝콜 핵심 요약',
     aiLoading: '실적 발표 및 컨퍼런스콜 내용을 분석 중입니다...',
     noApiKey:
-      'VITE_GEMINI_API_KEY가 설정되지 않아 기본 데모 요약을 표시합니다. Vercel 환경변수에 키를 추가하면 실시간 AI 요약과 검색이 활성화됩니다.',
+      'VITE_GEMINI_API_KEY가 설정되지 않아 기본 요약을 표시합니다. Vercel 환경변수에 키를 추가하면 실시간 AI 요약과 검색이 활성화됩니다.',
     close: '닫기',
     noResults: '조건에 맞는 실적 발표 일정이 없습니다.',
     addTickerHint: '상단 검색창에서 원하는 S&P 500 종목을 실시간으로 추가해 보세요.',
@@ -52,11 +52,11 @@ const UI_TEXT = {
     searchPlaceholder: 'Search ticker or company (e.g. AAPL, NVDA, JPM)',
     searchBtn: 'Live Lookup',
     searching: 'Looking up...',
-    all: 'All',
+    all: 'All (60)',
     upcoming: 'Upcoming (Earliest 30)',
     reported: 'Reported (Latest 30)',
     allSectors: 'All Sectors',
-    refreshAll: 'Refresh Schedule',
+    refreshAll: 'Reset Schedule',
     epsEst: 'EPS Est.',
     epsAct: 'EPS Act.',
     revEst: 'Rev. Est.',
@@ -84,11 +84,11 @@ const UI_TEXT = {
     searchPlaceholder: 'ティッカーまたは企業名で検索 (例: AAPL, NVDA, JPM)',
     searchBtn: 'リアルタイム検索',
     searching: '検索中...',
-    all: 'すべて',
-    upcoming: '予定（早い順 最大30件）',
-    reported: '発表済（最新順 最大30件）',
+    all: 'すべて (60)',
+    upcoming: '予定（早い順 30件）',
+    reported: '発表済（最新順 30件）',
     allSectors: '全セクター',
-    refreshAll: '日程更新',
+    refreshAll: '日程リセット',
     epsEst: 'EPS 予想',
     epsAct: 'EPS 実績',
     revEst: '売上 予想',
@@ -116,11 +116,11 @@ const UI_TEXT = {
     searchPlaceholder: '搜索代码或公司名称（如 AAPL, NVDA, JPM）',
     searchBtn: '实时查询',
     searching: '查询中...',
-    all: '全部',
+    all: '全部 (60)',
     upcoming: '即将发布（最早30条）',
     reported: '已发布（最新30条）',
     allSectors: '全部行业',
-    refreshAll: '刷新日程',
+    refreshAll: '重置日程',
     epsEst: 'EPS 预期',
     epsAct: 'EPS 实际',
     revEst: '营收 预期',
@@ -148,11 +148,11 @@ const UI_TEXT = {
     searchPlaceholder: 'Buscar ticker o empresa (ej. AAPL, NVDA, JPM)',
     searchBtn: 'Consulta en vivo',
     searching: 'Consultando...',
-    all: 'Todos',
+    all: 'Todos (60)',
     upcoming: 'Próximos (Primeros 30)',
     reported: 'Reportados (Últimos 30)',
     allSectors: 'Todos los sectores',
-    refreshAll: 'Actualizar agenda',
+    refreshAll: 'Restablecer agenda',
     epsEst: 'BPA Est.',
     epsAct: 'BPA Real',
     revEst: 'Ing. Est.',
@@ -176,167 +176,71 @@ const UI_TEXT = {
   },
 };
 
+// 예정 30개 (빠른 날짜 순) + 발표완료 30개 (최근 날짜 순)
 const INITIAL_EARNINGS = [
-  {
-    id: 'nvda-2026-11',
-    ticker: 'NVDA',
-    company: 'NVIDIA Corporation',
-    sector: 'Information Technology',
-    date: '2026-11-18',
-    timing: 'AMC',
-    status: 'reported',
-    epsEst: '$0.75',
-    epsAct: '$0.81',
-    revEst: '$33.1B',
-    revAct: '$35.1B',
-    surprise: '+7.7%',
-    demoSummary:
-      '• 데이터센터 및 Blackwell 아키텍처 수요가 전 분기 대비 강하게 확대되었습니다.\n• 클라우드 사업자(CSP)의 AI 인프라 CapEx 집행이 실적 성장을 견인했습니다.\n• 공급망 물량 확대와 차세대 랙 시스템 출하가 핵심 모멘텀으로 제시되었습니다.\n• 경영진은 다음 분기에도 높은 매출 성장률과 견조한 총마진 유지를 가이던스로 제시했습니다.',
-  },
-  {
-    id: 'crm-2026-12',
-    ticker: 'CRM',
-    company: 'Salesforce, Inc.',
-    sector: 'Information Technology',
-    date: '2026-12-03',
-    timing: 'AMC',
-    status: 'upcoming',
-    epsEst: '$2.44',
-    epsAct: '-',
-    revEst: '$9.46B',
-    revAct: '-',
-    surprise: '-',
-    demoSummary:
-      '• Agentforce 등 AI 에이전트 도입 속도와 유료 전환율이 핵심 관전 포인트입니다.\n• Data Cloud 연간반복매출(ARR) 성장률과 기업용 소프트웨어 IT 예산 회복 여부가 중요합니다.\n• 영업마진 개선 흐름과 잔여이행의무(cRPO) 가이던스 상향 여부가 주목됩니다.',
-  },
-  {
-    id: 'cost-2026-12',
-    ticker: 'COST',
-    company: 'Costco Wholesale Corp.',
-    sector: 'Consumer Staples',
-    date: '2026-12-10',
-    timing: 'AMC',
-    status: 'upcoming',
-    epsEst: '$3.82',
-    epsAct: '-',
-    revEst: '$62.1B',
-    revAct: '-',
-    surprise: '-',
-    demoSummary:
-      '• 미국 및 해외 동일점포매출(SSS) 성장률과 전자상거래 매출 증가세가 핵심 지표입니다.\n• 멤버십 갱신률과 회원권 요금 조정 효과가 수익성에 미치는 영향이 중요합니다.\n• 식료품·생필품 가격 경쟁력과 자체브랜드(Kirkland Signature) 비중 확대가 관건입니다.',
-  },
-  {
-    id: 'avgo-2026-12',
-    ticker: 'AVGO',
-    company: 'Broadcom Inc.',
-    sector: 'Information Technology',
-    date: '2026-12-10',
-    timing: 'AMC',
-    status: 'upcoming',
-    epsEst: '$1.39',
-    epsAct: '-',
-    revEst: '$14.0B',
-    revAct: '-',
-    surprise: '-',
-    demoSummary:
-      '• 커스텀 AI 가속기(ASIC) 및 네트워킹 칩 매출 성장세가 반도체 부문을 이끌고 있습니다.\n• VMware 소프트웨어 통합 이후 라이선스·구독 전환과 마진 개선 속도가 핵심입니다.\n• 하이퍼스케일러 고객사향 AI 수주 잔고와 분기 가이던스가 주요 체크포인트입니다.',
-  },
-  {
-    id: 'adbe-2026-12',
-    ticker: 'ADBE',
-    company: 'Adobe Inc.',
-    sector: 'Information Technology',
-    date: '2026-12-11',
-    timing: 'AMC',
-    status: 'upcoming',
-    epsEst: '$4.67',
-    epsAct: '-',
-    revEst: '$5.60B',
-    revAct: '-',
-    surprise: '-',
-    demoSummary:
-      '• Firefly 기반 생성형 AI 기능의 크레딧 소비 및 순신규 ARR 기여도가 핵심입니다.\n• Digital Media 및 Digital Experience 부문의 구독 성장세와 가격 정책 효과가 주목됩니다.\n• AI 기능 수익화 속도와 차기 회계연도 매출·EPS 가이던스가 시장 반응을 좌우할 전망입니다.',
-  },
-  {
-    id: 'mu-2026-12',
-    ticker: 'MU',
-    company: 'Micron Technology, Inc.',
-    sector: 'Information Technology',
-    date: '2026-12-17',
-    timing: 'AMC',
-    status: 'upcoming',
-    epsEst: '$1.75',
-    epsAct: '-',
-    revEst: '$8.70B',
-    revAct: '-',
-    surprise: '-',
-    demoSummary:
-      '• HBM3E 공급 확대 및 주요 AI 고객사 인증 진행 상황이 실적 개선의 핵심입니다.\n• DRAM 및 NAND 평균판매가격(ASP) 상승세와 비트 출하량 증가율이 중요합니다.\n• 데이터센터 메모리 수요 강도와 설비투자(CapEx) 계획이 주요 관전 포인트입니다.',
-  },
-  {
-    id: 'aapl-2026-10',
-    ticker: 'AAPL',
-    company: 'Apple Inc.',
-    sector: 'Information Technology',
-    date: '2026-10-29',
-    timing: 'AMC',
-    status: 'reported',
-    epsEst: '$1.60',
-    epsAct: '$1.64',
-    revEst: '$94.5B',
-    revAct: '$94.9B',
-    surprise: '+2.5%',
-    demoSummary:
-      '• 서비스 부문 매출이 사상 최고 수준 흐름을 이어가며 전체 마진을 지지했습니다.\n• Apple Intelligence 지원 기기 교체 수요와 신제품 초기 반응이 주요 화두였습니다.\n• 중국 시장 경쟁 환경과 연말 성수기 분기 매출 가이던스가 제시되었습니다.',
-  },
-  {
-    id: 'msft-2026-10',
-    ticker: 'MSFT',
-    company: 'Microsoft Corporation',
-    sector: 'Information Technology',
-    date: '2026-10-28',
-    timing: 'AMC',
-    status: 'reported',
-    epsEst: '$3.10',
-    epsAct: '$3.30',
-    revEst: '$64.5B',
-    revAct: '$65.6B',
-    surprise: '+6.5%',
-    demoSummary:
-      '• Azure 및 기타 클라우드 서비스 성장률과 그중 AI 서비스 기여도가 핵심으로 다뤄졌습니다.\n• M365 Copilot 기업 도입 확산과 상업용 예약(Commercial Bookings) 성장세가 확인되었습니다.\n• AI 데이터센터 확장을 위한 자본적지출(CapEx) 증가와 비용 통제 기조가 강조되었습니다.',
-  },
-  {
-    id: 'googl-2026-10',
-    ticker: 'GOOGL',
-    company: 'Alphabet Inc.',
-    sector: 'Communication Services',
-    date: '2026-10-29',
-    timing: 'AMC',
-    status: 'reported',
-    epsEst: '$1.85',
-    epsAct: '$2.12',
-    revEst: '$86.3B',
-    revAct: '$88.3B',
-    surprise: '+14.6%',
-    demoSummary:
-      '• Google Cloud 매출 성장 가속과 영업이익률 개선이 실적 호조를 뒷받침했습니다.\n• 검색 광고 및 YouTube 광고 수요가 견조하게 유지되며 현금흐름을 뒷받침했습니다.\n• AI 오버뷰·제미나이 통합에 따른 검색 경험 고도화와 인프라 투자 계획이 공유되었습니다.',
-  },
-  {
-    id: 'amzn-2026-10',
-    ticker: 'AMZN',
-    company: 'Amazon.com, Inc.',
-    sector: 'Consumer Discretionary',
-    date: '2026-10-31',
-    timing: 'AMC',
-    status: 'reported',
-    epsEst: '$1.14',
-    epsAct: '$1.43',
-    revEst: '$157.2B',
-    revAct: '$158.9B',
-    surprise: '+25.4%',
-    demoSummary:
-      '• AWS 매출 성장률 반등과 북미 리테일 물류 효율화(지역화·자동화)가 영업이익을 끌어올렸습니다.\n• 광고 사업 부문의 높은 성장세와 프라임 배송 속도 개선이 고객 충성도를 높였습니다.\n• AI 인프라 수요 증가에 따른 CapEx 집행과 4분기 성수기 전망이 제시되었습니다.',
-  },
+  // ===== UPCOMING (30개) =====
+  { id: 'up-01', ticker: 'CRM', company: 'Salesforce, Inc.', sector: 'Information Technology', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$2.44', epsAct: '-', revEst: '$9.46B', revAct: '-', surprise: '-' },
+  { id: 'up-02', ticker: 'CRWD', company: 'CrowdStrike Holdings, Inc.', sector: 'Information Technology', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$0.81', epsAct: '-', revEst: '$1.03B', revAct: '-', surprise: '-' },
+  { id: 'up-03', ticker: 'DG', company: 'Dollar General Corporation', sector: 'Consumer Staples', date: '2026-12-03', timing: 'BMO', status: 'upcoming', epsEst: '$0.95', epsAct: '-', revEst: '$10.2B', revAct: '-', surprise: '-' },
+  { id: 'up-04', ticker: 'KR', company: 'The Kroger Co.', sector: 'Consumer Staples', date: '2026-12-03', timing: 'BMO', status: 'upcoming', epsEst: '$0.98', epsAct: '-', revEst: '$34.2B', revAct: '-', surprise: '-' },
+  { id: 'up-05', ticker: 'ULTA', company: 'Ulta Beauty, Inc.', sector: 'Consumer Discretionary', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$4.52', epsAct: '-', revEst: '$2.50B', revAct: '-', surprise: '-' },
+  { id: 'up-06', ticker: 'HPE', company: 'Hewlett Packard Enterprise', sector: 'Information Technology', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$0.56', epsAct: '-', revEst: '$8.25B', revAct: '-', surprise: '-' },
+  { id: 'up-07', ticker: 'COO', company: 'The Cooper Companies, Inc.', sector: 'Health Care', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$1.00', epsAct: '-', revEst: '$1.02B', revAct: '-', surprise: '-' },
+  { id: 'up-08', ticker: 'AZO', company: 'AutoZone, Inc.', sector: 'Consumer Discretionary', date: '2026-12-08', timing: 'BMO', status: 'upcoming', epsEst: '$33.60', epsAct: '-', revEst: '$4.30B', revAct: '-', surprise: '-' },
+  { id: 'up-09', ticker: 'CPB', company: 'The Campbell’s Company', sector: 'Consumer Staples', date: '2026-12-09', timing: 'BMO', status: 'upcoming', epsEst: '$0.87', epsAct: '-', revEst: '$2.79B', revAct: '-', surprise: '-' },
+  { id: 'up-10', ticker: 'SNPS', company: 'Synopsys, Inc.', sector: 'Information Technology', date: '2026-12-09', timing: 'AMC', status: 'upcoming', epsEst: '$3.30', epsAct: '-', revEst: '$1.63B', revAct: '-', surprise: '-' },
+  { id: 'up-11', ticker: 'ORCL', company: 'Oracle Corporation', sector: 'Information Technology', date: '2026-12-09', timing: 'AMC', status: 'upcoming', epsEst: '$1.48', epsAct: '-', revEst: '$14.1B', revAct: '-', surprise: '-' },
+  { id: 'up-12', ticker: 'COST', company: 'Costco Wholesale Corp.', sector: 'Consumer Staples', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$3.82', epsAct: '-', revEst: '$62.1B', revAct: '-', surprise: '-' },
+  { id: 'up-13', ticker: 'AVGO', company: 'Broadcom Inc.', sector: 'Information Technology', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$1.39', epsAct: '-', revEst: '$14.0B', revAct: '-', surprise: '-' },
+  { id: 'up-14', ticker: 'LULU', company: 'Lululemon Athletica Inc.', sector: 'Consumer Discretionary', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$2.71', epsAct: '-', revEst: '$2.36B', revAct: '-', surprise: '-' },
+  { id: 'up-15', ticker: 'ADBE', company: 'Adobe Inc.', sector: 'Information Technology', date: '2026-12-11', timing: 'AMC', status: 'upcoming', epsEst: '$4.67', epsAct: '-', revEst: '$5.60B', revAct: '-', surprise: '-' },
+  { id: 'up-16', ticker: 'JBL', company: 'Jabil Inc.', sector: 'Information Technology', date: '2026-12-16', timing: 'BMO', status: 'upcoming', epsEst: '$1.88', epsAct: '-', revEst: '$6.60B', revAct: '-', surprise: '-' },
+  { id: 'up-17', ticker: 'GIS', company: 'General Mills, Inc.', sector: 'Consumer Staples', date: '2026-12-16', timing: 'BMO', status: 'upcoming', epsEst: '$1.22', epsAct: '-', revEst: '$5.14B', revAct: '-', surprise: '-' },
+  { id: 'up-18', ticker: 'MU', company: 'Micron Technology, Inc.', sector: 'Information Technology', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$1.75', epsAct: '-', revEst: '$8.70B', revAct: '-', surprise: '-' },
+  { id: 'up-19', ticker: 'LEN', company: 'Lennar Corporation', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$4.15', epsAct: '-', revEst: '$10.1B', revAct: '-', surprise: '-' },
+  { id: 'up-20', ticker: 'ACN', company: 'Accenture plc', sector: 'Information Technology', date: '2026-12-17', timing: 'BMO', status: 'upcoming', epsEst: '$3.42', epsAct: '-', revEst: '$17.1B', revAct: '-', surprise: '-' },
+  { id: 'up-21', ticker: 'NKE', company: 'NIKE, Inc.', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$0.63', epsAct: '-', revEst: '$12.1B', revAct: '-', surprise: '-' },
+  { id: 'up-22', ticker: 'FDX', company: 'FedEx Corporation', sector: 'Industrials', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$3.98', epsAct: '-', revEst: '$22.1B', revAct: '-', surprise: '-' },
+  { id: 'up-23', ticker: 'DRI', company: 'Darden Restaurants, Inc.', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'BMO', status: 'upcoming', epsEst: '$2.02', epsAct: '-', revEst: '$2.87B', revAct: '-', surprise: '-' },
+  { id: 'up-24', ticker: 'CCL', company: 'Carnival Corporation', sector: 'Consumer Discretionary', date: '2026-12-18', timing: 'BMO', status: 'upcoming', epsEst: '$0.08', epsAct: '-', revEst: '$5.93B', revAct: '-', surprise: '-' },
+  { id: 'up-25', ticker: 'PAYX', company: 'Paychex, Inc.', sector: 'Industrials', date: '2026-12-18', timing: 'BMO', status: 'upcoming', epsEst: '$1.12', epsAct: '-', revEst: '$1.31B', revAct: '-', surprise: '-' },
+  { id: 'up-26', ticker: 'CTAS', company: 'Cintas Corporation', sector: 'Industrials', date: '2026-12-22', timing: 'BMO', status: 'upcoming', epsEst: '$1.01', epsAct: '-', revEst: '$2.56B', revAct: '-', surprise: '-' },
+  { id: 'up-27', ticker: 'KMX', company: 'CarMax, Inc.', sector: 'Consumer Discretionary', date: '2026-12-22', timing: 'BMO', status: 'upcoming', epsEst: '$0.61', epsAct: '-', revEst: '$6.05B', revAct: '-', surprise: '-' },
+  { id: 'up-28', ticker: 'STZ', company: 'Constellation Brands, Inc.', sector: 'Consumer Staples', date: '2027-01-07', timing: 'BMO', status: 'upcoming', epsEst: '$3.31', epsAct: '-', revEst: '$2.53B', revAct: '-', surprise: '-' },
+  { id: 'up-29', ticker: 'DAL', company: 'Delta Air Lines, Inc.', sector: 'Industrials', date: '2027-01-12', timing: 'BMO', status: 'upcoming', epsEst: '$1.76', epsAct: '-', revEst: '$14.2B', revAct: '-', surprise: '-' },
+  { id: 'up-30', ticker: 'JPM', company: 'JPMorgan Chase & Co.', sector: 'Financials', date: '2027-01-14', timing: 'BMO', status: 'upcoming', epsEst: '$4.05', epsAct: '-', revEst: '$41.8B', revAct: '-', surprise: '-' },
+
+  // ===== REPORTED (30개) =====
+  { id: 'rep-01', ticker: 'DE', company: 'Deere & Company', sector: 'Industrials', date: '2026-11-24', timing: 'BMO', status: 'reported', epsEst: '$3.90', epsAct: '$4.55', revEst: '$9.27B', revAct: '$11.1B', surprise: '+16.7%' },
+  { id: 'rep-02', ticker: 'ADSK', company: 'Autodesk, Inc.', sector: 'Information Technology', date: '2026-11-24', timing: 'AMC', status: 'reported', epsEst: '$2.12', epsAct: '$2.17', revEst: '$1.56B', revAct: '$1.57B', surprise: '+2.4%' },
+  { id: 'rep-03', ticker: 'WDAY', company: 'Workday, Inc.', sector: 'Information Technology', date: '2026-11-24', timing: 'AMC', status: 'reported', epsEst: '$1.76', epsAct: '$1.89', revEst: '$2.13B', revAct: '$2.16B', surprise: '+7.4%' },
+  { id: 'rep-04', ticker: 'DELL', company: 'Dell Technologies Inc.', sector: 'Information Technology', date: '2026-11-24', timing: 'AMC', status: 'reported', epsEst: '$2.06', epsAct: '$2.15', revEst: '$24.6B', revAct: '$24.4B', surprise: '+4.4%' },
+  { id: 'rep-05', ticker: 'HPQ', company: 'HP Inc.', sector: 'Information Technology', date: '2026-11-24', timing: 'AMC', status: 'reported', epsEst: '$0.93', epsAct: '$0.93', revEst: '$14.0B', revAct: '$14.1B', surprise: '0.0%' },
+  { id: 'rep-06', ticker: 'BBY', company: 'Best Buy Co., Inc.', sector: 'Consumer Discretionary', date: '2026-11-24', timing: 'BMO', status: 'reported', epsEst: '$1.29', epsAct: '$1.26', revEst: '$9.63B', revAct: '$9.45B', surprise: '-2.3%' },
+  { id: 'rep-07', ticker: 'ADI', company: 'Analog Devices, Inc.', sector: 'Information Technology', date: '2026-11-24', timing: 'BMO', status: 'reported', epsEst: '$1.64', epsAct: '$1.67', revEst: '$2.41B', revAct: '$2.44B', surprise: '+1.8%' },
+  { id: 'rep-08', ticker: 'A', company: 'Agilent Technologies, Inc.', sector: 'Health Care', date: '2026-11-23', timing: 'AMC', status: 'reported', epsEst: '$1.41', epsAct: '$1.46', revEst: '$1.67B', revAct: '$1.70B', surprise: '+3.5%' },
+  { id: 'rep-09', ticker: 'INTU', company: 'Intuit Inc.', sector: 'Information Technology', date: '2026-11-19', timing: 'AMC', status: 'reported', epsEst: '$2.36', epsAct: '$2.50', revEst: '$3.14B', revAct: '$3.28B', surprise: '+5.9%' },
+  { id: 'rep-10', ticker: 'ROST', company: 'Ross Stores, Inc.', sector: 'Consumer Discretionary', date: '2026-11-19', timing: 'AMC', status: 'reported', epsEst: '$1.40', epsAct: '$1.48', revEst: '$5.15B', revAct: '$5.07B', surprise: '+5.7%' },
+  { id: 'rep-11', ticker: 'WMT', company: 'Walmart Inc.', sector: 'Consumer Staples', date: '2026-11-19', timing: 'BMO', status: 'reported', epsEst: '$0.53', epsAct: '$0.58', revEst: '$167.7B', revAct: '$169.6B', surprise: '+9.4%' },
+  { id: 'rep-12', ticker: 'NVDA', company: 'NVIDIA Corporation', sector: 'Information Technology', date: '2026-11-18', timing: 'AMC', status: 'reported', epsEst: '$0.75', epsAct: '$0.81', revEst: '$33.1B', revAct: '$35.1B', surprise: '+7.7%' },
+  { id: 'rep-13', ticker: 'PANW', company: 'Palo Alto Networks, Inc.', sector: 'Information Technology', date: '2026-11-18', timing: 'AMC', status: 'reported', epsEst: '$1.48', epsAct: '$1.56', revEst: '$2.12B', revAct: '$2.14B', surprise: '+5.4%' },
+  { id: 'rep-14', ticker: 'TGT', company: 'Target Corporation', sector: 'Consumer Discretionary', date: '2026-11-18', timing: 'BMO', status: 'reported', epsEst: '$2.30', epsAct: '$1.85', revEst: '$25.9B', revAct: '$25.7B', surprise: '-19.6%' },
+  { id: 'rep-15', ticker: 'TJX', company: 'The TJX Companies, Inc.', sector: 'Consumer Discretionary', date: '2026-11-18', timing: 'BMO', status: 'reported', epsEst: '$1.09', epsAct: '$1.14', revEst: '$13.9B', revAct: '$14.1B', surprise: '+4.6%' },
+  { id: 'rep-16', ticker: 'LOW', company: "Lowe's Companies, Inc.", sector: 'Consumer Discretionary', date: '2026-11-17', timing: 'BMO', status: 'reported', epsEst: '$2.82', epsAct: '$2.89', revEst: '$19.9B', revAct: '$20.2B', surprise: '+2.5%' },
+  { id: 'rep-17', ticker: 'MDT', company: 'Medtronic plc', sector: 'Health Care', date: '2026-11-17', timing: 'BMO', status: 'reported', epsEst: '$1.25', epsAct: '$1.26', revEst: '$8.27B', revAct: '$8.40B', surprise: '+0.8%' },
+  { id: 'rep-18', ticker: 'AMAT', company: 'Applied Materials, Inc.', sector: 'Information Technology', date: '2026-11-12', timing: 'AMC', status: 'reported', epsEst: '$2.19', epsAct: '$2.32', revEst: '$6.95B', revAct: '$7.05B', surprise: '+5.9%' },
+  { id: 'rep-19', ticker: 'DIS', company: 'The Walt Disney Company', sector: 'Communication Services', date: '2026-11-12', timing: 'BMO', status: 'reported', epsEst: '$1.11', epsAct: '$1.14', revEst: '$22.4B', revAct: '$22.6B', surprise: '+2.7%' },
+  { id: 'rep-20', ticker: 'CSCO', company: 'Cisco Systems, Inc.', sector: 'Information Technology', date: '2026-11-11', timing: 'AMC', status: 'reported', epsEst: '$0.87', epsAct: '$0.91', revEst: '$13.8B', revAct: '$13.8B', surprise: '+4.6%' },
+  { id: 'rep-21', ticker: 'HD', company: 'The Home Depot, Inc.', sector: 'Consumer Discretionary', date: '2026-11-10', timing: 'BMO', status: 'reported', epsEst: '$3.64', epsAct: '$3.67', revEst: '$39.3B', revAct: '$40.2B', surprise: '+0.8%' },
+  { id: 'rep-22', ticker: 'QCOM', company: 'QUALCOMM Incorporated', sector: 'Information Technology', date: '2026-11-04', timing: 'AMC', status: 'reported', epsEst: '$2.56', epsAct: '$2.69', revEst: '$9.91B', revAct: '$10.2B', surprise: '+5.1%' },
+  { id: 'rep-23', ticker: 'PLTR', company: 'Palantir Technologies Inc.', sector: 'Information Technology', date: '2026-11-02', timing: 'AMC', status: 'reported', epsEst: '$0.09', epsAct: '$0.10', revEst: '$701M', revAct: '$726M', surprise: '+11.1%' },
+  { id: 'rep-24', ticker: 'AMZN', company: 'Amazon.com, Inc.', sector: 'Consumer Discretionary', date: '2026-10-31', timing: 'AMC', status: 'reported', epsEst: '$1.14', epsAct: '$1.43', revEst: '$157.2B', revAct: '$158.9B', surprise: '+25.4%' },
+  { id: 'rep-25', ticker: 'AAPL', company: 'Apple Inc.', sector: 'Information Technology', date: '2026-10-29', timing: 'AMC', status: 'reported', epsEst: '$1.60', epsAct: '$1.64', revEst: '$94.5B', revAct: '$94.9B', surprise: '+2.5%' },
+  { id: 'rep-26', ticker: 'GOOGL', company: 'Alphabet Inc.', sector: 'Communication Services', date: '2026-10-29', timing: 'AMC', status: 'reported', epsEst: '$1.85', epsAct: '$2.12', revEst: '$86.3B', revAct: '$88.3B', surprise: '+14.6%' },
+  { id: 'rep-27', ticker: 'META', company: 'Meta Platforms, Inc.', sector: 'Communication Services', date: '2026-10-28', timing: 'AMC', status: 'reported', epsEst: '$5.25', epsAct: '$6.03', revEst: '$40.3B', revAct: '$40.6B', surprise: '+14.9%' },
+  { id: 'rep-28', ticker: 'MSFT', company: 'Microsoft Corporation', sector: 'Information Technology', date: '2026-10-28', timing: 'AMC', status: 'reported', epsEst: '$3.10', epsAct: '$3.30', revEst: '$64.5B', revAct: '$65.6B', surprise: '+6.5%' },
+  { id: 'rep-29', ticker: 'AMD', company: 'Advanced Micro Devices', sector: 'Information Technology', date: '2026-10-27', timing: 'AMC', status: 'reported', epsEst: '$0.92', epsAct: '$0.92', revEst: '$6.71B', revAct: '$6.82B', surprise: '0.0%' },
+  { id: 'rep-30', ticker: 'TSLA', company: 'Tesla, Inc.', sector: 'Consumer Discretionary', date: '2026-10-21', timing: 'AMC', status: 'reported', epsEst: '$0.58', epsAct: '$0.72', revEst: '$25.4B', revAct: '$25.2B', surprise: '+24.1%' },
 ];
 
 const LIMIT_PER_STATUS = 30;
@@ -353,11 +257,13 @@ function curateEarningsList(items) {
 
   const allUnique = Array.from(dedupedMap.values());
 
+  // 예정: 발표일이 가장 빠른 순(오름차순) 30개
   const upcomingSorted = allUnique
     .filter((item) => item.status === 'upcoming')
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, LIMIT_PER_STATUS);
 
+  // 발표완료: 발표일이 가장 최근 순(내림차순) 30개
   const reportedSorted = allUnique
     .filter((item) => item.status === 'reported')
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -368,6 +274,17 @@ function curateEarningsList(items) {
     reported: reportedSorted,
     combined: [...upcomingSorted, ...reportedSorted],
   };
+}
+
+function buildFallbackSummary(item) {
+  if (item.status === 'upcoming') {
+    return `• ${item.company} (${item.ticker})는 ${item.date} ${
+      item.timing === 'BMO' ? '장 시작 전' : '장 마감 후'
+    } 분기 실적을 발표할 예정입니다.\n• 시장 컨센서스는 EPS ${item.epsEst}, 매출 ${
+      item.revEst
+    } 수준으로 형성되어 있습니다.\n• 핵심 사업부 매출 성장률과 다음 분기 가이던스 상향 여부가 주가 방향을 결정할 전망입니다.\n• 상단에 VITE_GEMINI_API_KEY를 연결하면 최신 애널리스트 프리뷰와 컨퍼런스콜 핵심 포인트를 실시간 요약합니다.`;
+  }
+  return `• ${item.company} (${item.ticker})는 ${item.date} 실적 발표에서 EPS ${item.epsAct}(예상 ${item.epsEst}), 매출 ${item.revAct}(예상 ${item.revEst})를 기록했습니다.\n• 어닝 서프라이즈는 ${item.surprise}로 집계되었습니다.\n• 주력 부문 수요 흐름과 영업이익률 추이, 경영진의 차기 분기 가이던스가 핵심 평가 요소입니다.\n• Vercel 환경변수에 VITE_GEMINI_API_KEY를 설정하면 실제 어닝콜 발언 기반의 다국어 AI 요약을 바로 확인할 수 있습니다.`;
 }
 
 async function generateGeminiText(apiKey, prompt) {
@@ -487,7 +404,6 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
         revEst: parsed.revEst || '-',
         revAct: parsed.revAct || '-',
         surprise: parsed.surprise || '-',
-        demoSummary: '',
       };
 
       setEarnings((prev) => [newRecord, ...prev]);
@@ -508,7 +424,7 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
     setSummaryText('');
 
     if (!apiKey) {
-      setSummaryText(item.demoSummary || t.noApiKey);
+      setSummaryText(buildFallbackSummary(item));
       return;
     }
 
@@ -527,16 +443,16 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
 Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, margin/guidance takeaways, and key management themes.`;
 
       const result = await generateGeminiText(apiKey, prompt);
-      setSummaryText(result || item.demoSummary || '');
+      setSummaryText(result || buildFallbackSummary(item));
     } catch (err) {
-      setSummaryText(item.demoSummary || 'AI 요약 생성 중 오류가 발생했습니다.');
+      setSummaryText(buildFallbackSummary(item));
     } finally {
       setIsSummarizing(false);
     }
   };
 
   useEffect(() => {
-    if (selectedItem && apiKey) {
+    if (selectedItem) {
       handleOpenSummary(selectedItem);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
