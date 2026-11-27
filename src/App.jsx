@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import {
   Calendar,
   Search,
@@ -354,13 +353,11 @@ function curateEarningsList(items) {
 
   const allUnique = Array.from(dedupedMap.values());
 
-  // 예정: 발표일이 가장 빠른 순(오름차순)으로 최대 30개
   const upcomingSorted = allUnique
     .filter((item) => item.status === 'upcoming')
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, LIMIT_PER_STATUS);
 
-  // 발표완료: 발표일이 가장 최근 순(내림차순)으로 최대 30개
   const reportedSorted = allUnique
     .filter((item) => item.status === 'reported')
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -373,10 +370,35 @@ function curateEarningsList(items) {
   };
 }
 
+async function generateGeminiText(apiKey, prompt) {
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
+    apiKey
+  )}`;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      tools: [{ google_search: {} }],
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Gemini API HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  return parts
+    .map((p) => p.text || '')
+    .join('\n')
+    .trim();
+}
+
 export default function App() {
   const [lang, setLang] = useState('ko');
   const [earnings, setEarnings] = useState(INITIAL_EARNINGS);
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'upcoming' | 'reported'
+  const [statusFilter, setStatusFilter] = useState('all');
   const [sectorFilter, setSectorFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -429,7 +451,6 @@ export default function App() {
 
     setIsSearching(true);
     try {
-      const ai = new GoogleGenAI({ apiKey });
       const prompt = `Find the latest or upcoming quarterly earnings release information for S&P 500 stock "${rawQuery}".
 Return ONLY a valid JSON object (no markdown fences) with these exact keys:
 {
@@ -446,15 +467,7 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
   "surprise": "string e.g. +4.2% or -"
 }`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-        },
-      });
-
-      const text = (response.text || '').trim();
+      const text = await generateGeminiText(apiKey, prompt);
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('Invalid JSON response');
@@ -501,7 +514,6 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
 
     setIsSummarizing(true);
     try {
-      const ai = new GoogleGenAI({ apiKey });
       const langNames = {
         ko: 'Korean',
         en: 'English',
@@ -514,15 +526,8 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       const prompt = `Provide a concise 4-bullet earnings and earnings call summary for ${item.company} (${item.ticker}), earnings date ${item.date}, status: ${item.status}.
 Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, margin/guidance takeaways, and key management themes.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-        },
-      });
-
-      setSummaryText((response.text || '').trim() || item.demoSummary || '');
+      const result = await generateGeminiText(apiKey, prompt);
+      setSummaryText(result || item.demoSummary || '');
     } catch (err) {
       setSummaryText(item.demoSummary || 'AI 요약 생성 중 오류가 발생했습니다.');
     } finally {
@@ -540,7 +545,6 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
         <header className="mb-6 flex flex-col justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/90 p-5 sm:flex-row sm:items-center">
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
@@ -572,7 +576,6 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
           </div>
         </header>
 
-        {/* API Key Notice */}
         {!apiKey && (
           <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-950/40 p-4 text-sm text-amber-200">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
@@ -596,7 +599,6 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
           </div>
         )}
 
-        {/* Search & Filter Controls */}
         <section className="mb-6 space-y-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5">
           <form onSubmit={handleLiveLookup} className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
@@ -629,7 +631,6 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
           </form>
 
           <div className="flex flex-col justify-between gap-3 pt-1 md:flex-row md:items-center">
-            {/* Status Tabs */}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -666,7 +667,6 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
               </button>
             </div>
 
-            {/* Sector Filter & Reset */}
             <div className="flex flex-wrap items-center gap-2">
               <select
                 aria-label="Sector filter"
@@ -699,7 +699,6 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
           </div>
         </section>
 
-        {/* Cards Grid */}
         {filteredItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-10 text-center">
             <p className="text-base font-medium text-slate-300">{t.noResults}</p>
@@ -785,11 +784,9 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
           </section>
         )}
 
-        {/* Footer Disclaimer */}
         <footer className="mt-8 text-center text-xs text-slate-500">{t.disclaimer}</footer>
       </div>
 
-      {/* AI Summary Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
