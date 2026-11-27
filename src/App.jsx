@@ -11,7 +11,12 @@ import {
   AlertCircle,
   X,
   Plus,
+  Star,
 } from 'lucide-react';
+
+const WATCHLIST_STORAGE_KEY = 'sp500_earnings_watchlist_v1';
+const LIMIT_PER_STATUS = 30;
+const MAX_WATCHLIST = 50;
 
 const UI_TEXT = {
   ko: {
@@ -23,6 +28,7 @@ const UI_TEXT = {
     all: '전체 (60)',
     upcoming: '예정 (빠른 순 30개)',
     reported: '발표완료 (최근 순 30개)',
+    watchlistTab: (count) => `관심목록 (${count}/${MAX_WATCHLIST})`,
     allSectors: '전체 섹터',
     refreshAll: '일정 초기화',
     epsEst: 'EPS 예상',
@@ -35,14 +41,19 @@ const UI_TEXT = {
     aiLoading: '실적 발표 및 컨퍼런스콜 내용을 분석 중입니다...',
     noApiKey:
       'VITE_GEMINI_API_KEY가 설정되지 않아 기본 요약을 표시합니다. Vercel 환경변수에 키를 추가하면 실시간 AI 요약과 검색이 활성화됩니다.',
+    watchlistFull: `관심목록은 최대 ${MAX_WATCHLIST}개까지 등록할 수 있습니다. 기존 종목을 해제한 뒤 추가해 주세요.`,
+    addWatchlist: '관심 추가',
+    inWatchlist: '관심 등록됨',
     close: '닫기',
     noResults: '조건에 맞는 실적 발표 일정이 없습니다.',
+    emptyWatchlist: `관심목록이 비어 있습니다. 카드의 별 아이콘을 눌러 최대 ${MAX_WATCHLIST}개까지 추가해 보세요.`,
     addTickerHint: '상단 검색창에서 원하는 S&P 500 종목을 실시간으로 추가해 보세요.',
     statusUpcoming: '발표예정',
     statusReported: '발표완료',
     timeBMO: '장 시작 전 (BMO)',
     timeAMC: '장 마감 후 (AMC)',
-    countBadge: (upCount, repCount) => `예정 ${upCount}개 · 발표완료 ${repCount}개`,
+    countBadge: (upCount, repCount, watchCount) =>
+      `예정 ${upCount}개 · 발표완료 ${repCount}개 · 관심 ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ 본 앱의 일정 및 AI 요약은 참고용이며, 최종 공시 및 투자 판단의 책임은 이용자 본인에게 있습니다.',
   },
@@ -55,6 +66,7 @@ const UI_TEXT = {
     all: 'All (60)',
     upcoming: 'Upcoming (Earliest 30)',
     reported: 'Reported (Latest 30)',
+    watchlistTab: (count) => `Watchlist (${count}/${MAX_WATCHLIST})`,
     allSectors: 'All Sectors',
     refreshAll: 'Reset Schedule',
     epsEst: 'EPS Est.',
@@ -67,14 +79,19 @@ const UI_TEXT = {
     aiLoading: 'Analyzing earnings release and call highlights...',
     noApiKey:
       'VITE_GEMINI_API_KEY is not set; showing sample summaries. Add VITE_GEMINI_API_KEY in Vercel Environment Variables to enable live AI summaries and lookup.',
+    watchlistFull: `Watchlist supports up to ${MAX_WATCHLIST} stocks. Remove an item before adding another.`,
+    addWatchlist: 'Watch',
+    inWatchlist: 'Watching',
     close: 'Close',
     noResults: 'No earnings events match your current filters.',
+    emptyWatchlist: `Your watchlist is empty. Click the star button on any card to save up to ${MAX_WATCHLIST} stocks.`,
     addTickerHint: 'Use the search bar above to look up any S&P 500 ticker live.',
     statusUpcoming: 'Upcoming',
     statusReported: 'Reported',
     timeBMO: 'Before Market Open',
     timeAMC: 'After Market Close',
-    countBadge: (upCount, repCount) => `Upcoming ${upCount} · Reported ${repCount}`,
+    countBadge: (upCount, repCount, watchCount) =>
+      `Upcoming ${upCount} · Reported ${repCount} · Watchlist ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ Earnings dates and AI summaries are for informational purposes only. Always verify official filings.',
   },
@@ -87,6 +104,7 @@ const UI_TEXT = {
     all: 'すべて (60)',
     upcoming: '予定（早い順 30件）',
     reported: '発表済（最新順 30件）',
+    watchlistTab: (count) => `ウォッチリスト (${count}/${MAX_WATCHLIST})`,
     allSectors: '全セクター',
     refreshAll: '日程リセット',
     epsEst: 'EPS 予想',
@@ -99,14 +117,19 @@ const UI_TEXT = {
     aiLoading: '決算内容とカンファレンスコールを分析中...',
     noApiKey:
       'VITE_GEMINI_API_KEY が未設定のためサンプル要約を表示しています。Vercelの環境変数に設定するとリアルタイムAI要約と検索が有効になります。',
+    watchlistFull: `ウォッチリストは最大${MAX_WATCHLIST}件まで登録できます。解除してから追加してください。`,
+    addWatchlist: 'お気に入り',
+    inWatchlist: '登録済み',
     close: '閉じる',
     noResults: '条件に一致する決算発表がありません。',
+    emptyWatchlist: `ウォッチリストが空です。カードの星マークから最大${MAX_WATCHLIST}件まで追加できます。`,
     addTickerHint: '上の検索バーからS&P 500銘柄をリアルタイム検索できます。',
     statusUpcoming: '発表予定',
     statusReported: '発表済',
     timeBMO: '寄り付き前 (BMO)',
     timeAMC: '引け後 (AMC)',
-    countBadge: (upCount, repCount) => `予定 ${upCount}件 · 発表済 ${repCount}件`,
+    countBadge: (upCount, repCount, watchCount) =>
+      `予定 ${upCount}件 · 発表済 ${repCount}件 · 注目 ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ 決算日程およびAI要約は参考情報です。最終的な投資判断はご自身の責任で行ってください。',
   },
@@ -119,6 +142,7 @@ const UI_TEXT = {
     all: '全部 (60)',
     upcoming: '即将发布（最早30条）',
     reported: '已发布（最新30条）',
+    watchlistTab: (count) => `自选股 (${count}/${MAX_WATCHLIST})`,
     allSectors: '全部行业',
     refreshAll: '重置日程',
     epsEst: 'EPS 预期',
@@ -131,14 +155,19 @@ const UI_TEXT = {
     aiLoading: '正在分析财报与电话会议要点...',
     noApiKey:
       '未配置 VITE_GEMINI_API_KEY，当前显示示例摘要。请在 Vercel 环境变量中添加密钥以启用实时 AI 摘要与查询。',
+    watchlistFull: `自选股最多支持${MAX_WATCHLIST}只股票，请先取消一项后再添加。`,
+    addWatchlist: '加自选',
+    inWatchlist: '已自选',
     close: '关闭',
     noResults: '没有符合当前筛选条件的财报日程。',
+    emptyWatchlist: `自选股为空。点击卡片上的星标最多可添加${MAX_WATCHLIST}只股票。`,
     addTickerHint: '可在上方搜索框实时查询标普500成分股。',
     statusUpcoming: '即将发布',
     statusReported: '已发布',
     timeBMO: '盘前 (BMO)',
     timeAMC: '盘后 (AMC)',
-    countBadge: (upCount, repCount) => `即将发布 ${upCount} · 已发布 ${repCount}`,
+    countBadge: (upCount, repCount, watchCount) =>
+      `即将发布 ${upCount} · 已发布 ${repCount} · 自选 ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ 财报日期与 AI 摘要仅供参考，请以官方披露为准并审慎决策。',
   },
@@ -151,6 +180,7 @@ const UI_TEXT = {
     all: 'Todos (60)',
     upcoming: 'Próximos (Primeros 30)',
     reported: 'Reportados (Últimos 30)',
+    watchlistTab: (count) => `Seguimiento (${count}/${MAX_WATCHLIST})`,
     allSectors: 'Todos los sectores',
     refreshAll: 'Restablecer agenda',
     epsEst: 'BPA Est.',
@@ -163,51 +193,56 @@ const UI_TEXT = {
     aiLoading: 'Analizando el reporte de ganancias y la llamada...',
     noApiKey:
       'VITE_GEMINI_API_KEY no está configurada; se muestran resúmenes de ejemplo. Añade la clave en Vercel para activar el análisis en vivo.',
+    watchlistFull: `La lista de seguimiento admite hasta ${MAX_WATCHLIST} acciones. Quita una antes de añadir otra.`,
+    addWatchlist: 'Seguir',
+    inWatchlist: 'Siguiendo',
     close: 'Cerrar',
     noResults: 'No hay eventos que coincidan con los filtros actuales.',
+    emptyWatchlist: `Tu lista de seguimiento está vacía. Toca la estrella en cualquier tarjeta para guardar hasta ${MAX_WATCHLIST}.`,
     addTickerHint: 'Usa la barra superior para consultar cualquier empresa del S&P 500.',
     statusUpcoming: 'Próximo',
     statusReported: 'Reportado',
     timeBMO: 'Antes de apertura',
     timeAMC: 'Tras el cierre',
-    countBadge: (upCount, repCount) => `Próximos ${upCount} · Reportados ${repCount}`,
+    countBadge: (upCount, repCount, watchCount) =>
+      `Próximos ${upCount} · Reportados ${repCount} · Seguimiento ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ Las fechas y resúmenes generados por IA son informativos. Verifique siempre los comunicados oficiales.',
   },
 };
 
-// 예정 30개 (빠른 날짜 순) + 발표완료 30개 (최근 날짜 순)
+// 기본 노출: 예정 30개 (빠른 날짜 순) + 발표완료 30개 (최근 날짜 순)
 const INITIAL_EARNINGS = [
   // ===== UPCOMING (30개) =====
-  { id: 'up-01', ticker: 'CRM', company: 'Salesforce, Inc.', sector: 'Information Technology', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$2.44', epsAct: '-', revEst: '$9.46B', revAct: '-', surprise: '-' },
-  { id: 'up-02', ticker: 'CRWD', company: 'CrowdStrike Holdings, Inc.', sector: 'Information Technology', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$0.81', epsAct: '-', revEst: '$1.03B', revAct: '-', surprise: '-' },
-  { id: 'up-03', ticker: 'DG', company: 'Dollar General Corporation', sector: 'Consumer Staples', date: '2026-12-03', timing: 'BMO', status: 'upcoming', epsEst: '$0.95', epsAct: '-', revEst: '$10.2B', revAct: '-', surprise: '-' },
-  { id: 'up-04', ticker: 'KR', company: 'The Kroger Co.', sector: 'Consumer Staples', date: '2026-12-03', timing: 'BMO', status: 'upcoming', epsEst: '$0.98', epsAct: '-', revEst: '$34.2B', revAct: '-', surprise: '-' },
-  { id: 'up-05', ticker: 'ULTA', company: 'Ulta Beauty, Inc.', sector: 'Consumer Discretionary', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$4.52', epsAct: '-', revEst: '$2.50B', revAct: '-', surprise: '-' },
-  { id: 'up-06', ticker: 'HPE', company: 'Hewlett Packard Enterprise', sector: 'Information Technology', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$0.56', epsAct: '-', revEst: '$8.25B', revAct: '-', surprise: '-' },
-  { id: 'up-07', ticker: 'COO', company: 'The Cooper Companies, Inc.', sector: 'Health Care', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$1.00', epsAct: '-', revEst: '$1.02B', revAct: '-', surprise: '-' },
-  { id: 'up-08', ticker: 'AZO', company: 'AutoZone, Inc.', sector: 'Consumer Discretionary', date: '2026-12-08', timing: 'BMO', status: 'upcoming', epsEst: '$33.60', epsAct: '-', revEst: '$4.30B', revAct: '-', surprise: '-' },
-  { id: 'up-09', ticker: 'CPB', company: 'The Campbell’s Company', sector: 'Consumer Staples', date: '2026-12-09', timing: 'BMO', status: 'upcoming', epsEst: '$0.87', epsAct: '-', revEst: '$2.79B', revAct: '-', surprise: '-' },
-  { id: 'up-10', ticker: 'SNPS', company: 'Synopsys, Inc.', sector: 'Information Technology', date: '2026-12-09', timing: 'AMC', status: 'upcoming', epsEst: '$3.30', epsAct: '-', revEst: '$1.63B', revAct: '-', surprise: '-' },
-  { id: 'up-11', ticker: 'ORCL', company: 'Oracle Corporation', sector: 'Information Technology', date: '2026-12-09', timing: 'AMC', status: 'upcoming', epsEst: '$1.48', epsAct: '-', revEst: '$14.1B', revAct: '-', surprise: '-' },
-  { id: 'up-12', ticker: 'COST', company: 'Costco Wholesale Corp.', sector: 'Consumer Staples', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$3.82', epsAct: '-', revEst: '$62.1B', revAct: '-', surprise: '-' },
-  { id: 'up-13', ticker: 'AVGO', company: 'Broadcom Inc.', sector: 'Information Technology', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$1.39', epsAct: '-', revEst: '$14.0B', revAct: '-', surprise: '-' },
-  { id: 'up-14', ticker: 'LULU', company: 'Lululemon Athletica Inc.', sector: 'Consumer Discretionary', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$2.71', epsAct: '-', revEst: '$2.36B', revAct: '-', surprise: '-' },
-  { id: 'up-15', ticker: 'ADBE', company: 'Adobe Inc.', sector: 'Information Technology', date: '2026-12-11', timing: 'AMC', status: 'upcoming', epsEst: '$4.67', epsAct: '-', revEst: '$5.60B', revAct: '-', surprise: '-' },
-  { id: 'up-16', ticker: 'JBL', company: 'Jabil Inc.', sector: 'Information Technology', date: '2026-12-16', timing: 'BMO', status: 'upcoming', epsEst: '$1.88', epsAct: '-', revEst: '$6.60B', revAct: '-', surprise: '-' },
-  { id: 'up-17', ticker: 'GIS', company: 'General Mills, Inc.', sector: 'Consumer Staples', date: '2026-12-16', timing: 'BMO', status: 'upcoming', epsEst: '$1.22', epsAct: '-', revEst: '$5.14B', revAct: '-', surprise: '-' },
-  { id: 'up-18', ticker: 'MU', company: 'Micron Technology, Inc.', sector: 'Information Technology', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$1.75', epsAct: '-', revEst: '$8.70B', revAct: '-', surprise: '-' },
-  { id: 'up-19', ticker: 'LEN', company: 'Lennar Corporation', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$4.15', epsAct: '-', revEst: '$10.1B', revAct: '-', surprise: '-' },
-  { id: 'up-20', ticker: 'ACN', company: 'Accenture plc', sector: 'Information Technology', date: '2026-12-17', timing: 'BMO', status: 'upcoming', epsEst: '$3.42', epsAct: '-', revEst: '$17.1B', revAct: '-', surprise: '-' },
-  { id: 'up-21', ticker: 'NKE', company: 'NIKE, Inc.', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$0.63', epsAct: '-', revEst: '$12.1B', revAct: '-', surprise: '-' },
-  { id: 'up-22', ticker: 'FDX', company: 'FedEx Corporation', sector: 'Industrials', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$3.98', epsAct: '-', revEst: '$22.1B', revAct: '-', surprise: '-' },
-  { id: 'up-23', ticker: 'DRI', company: 'Darden Restaurants, Inc.', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'BMO', status: 'upcoming', epsEst: '$2.02', epsAct: '-', revEst: '$2.87B', revAct: '-', surprise: '-' },
-  { id: 'up-24', ticker: 'CCL', company: 'Carnival Corporation', sector: 'Consumer Discretionary', date: '2026-12-18', timing: 'BMO', status: 'upcoming', epsEst: '$0.08', epsAct: '-', revEst: '$5.93B', revAct: '-', surprise: '-' },
-  { id: 'up-25', ticker: 'PAYX', company: 'Paychex, Inc.', sector: 'Industrials', date: '2026-12-18', timing: 'BMO', status: 'upcoming', epsEst: '$1.12', epsAct: '-', revEst: '$1.31B', revAct: '-', surprise: '-' },
-  { id: 'up-26', ticker: 'CTAS', company: 'Cintas Corporation', sector: 'Industrials', date: '2026-12-22', timing: 'BMO', status: 'upcoming', epsEst: '$1.01', epsAct: '-', revEst: '$2.56B', revAct: '-', surprise: '-' },
-  { id: 'up-27', ticker: 'KMX', company: 'CarMax, Inc.', sector: 'Consumer Discretionary', date: '2026-12-22', timing: 'BMO', status: 'upcoming', epsEst: '$0.61', epsAct: '-', revEst: '$6.05B', revAct: '-', surprise: '-' },
-  { id: 'up-28', ticker: 'STZ', company: 'Constellation Brands, Inc.', sector: 'Consumer Staples', date: '2027-01-07', timing: 'BMO', status: 'upcoming', epsEst: '$3.31', epsAct: '-', revEst: '$2.53B', revAct: '-', surprise: '-' },
-  { id: 'up-29', ticker: 'DAL', company: 'Delta Air Lines, Inc.', sector: 'Industrials', date: '2027-01-12', timing: 'BMO', status: 'upcoming', epsEst: '$1.76', epsAct: '-', revEst: '$14.2B', revAct: '-', surprise: '-' },
+  { id: 'up-01', ticker: 'MRVL', company: 'Marvell Technology, Inc.', sector: 'Information Technology', date: '2026-12-01', timing: 'AMC', status: 'upcoming', epsEst: '$0.48', epsAct: '-', revEst: '$1.51B', revAct: '-', surprise: '-' },
+  { id: 'up-02', ticker: 'NTAP', company: 'NetApp, Inc.', sector: 'Information Technology', date: '2026-12-01', timing: 'AMC', status: 'upcoming', epsEst: '$1.78', epsAct: '-', revEst: '$1.66B', revAct: '-', surprise: '-' },
+  { id: 'up-03', ticker: 'CRWD', company: 'CrowdStrike Holdings, Inc.', sector: 'Information Technology', date: '2026-12-01', timing: 'AMC', status: 'upcoming', epsEst: '$0.81', epsAct: '-', revEst: '$1.03B', revAct: '-', surprise: '-' },
+  { id: 'up-04', ticker: 'OKTA', company: 'Okta, Inc.', sector: 'Information Technology', date: '2026-12-01', timing: 'AMC', status: 'upcoming', epsEst: '$0.59', epsAct: '-', revEst: '$650M', revAct: '-', surprise: '-' },
+  { id: 'up-05', ticker: 'CRM', company: 'Salesforce, Inc.', sector: 'Information Technology', date: '2026-12-02', timing: 'AMC', status: 'upcoming', epsEst: '$2.44', epsAct: '-', revEst: '$9.46B', revAct: '-', surprise: '-' },
+  { id: 'up-06', ticker: 'DG', company: 'Dollar General Corporation', sector: 'Consumer Staples', date: '2026-12-03', timing: 'BMO', status: 'upcoming', epsEst: '$0.95', epsAct: '-', revEst: '$10.2B', revAct: '-', surprise: '-' },
+  { id: 'up-07', ticker: 'KR', company: 'The Kroger Co.', sector: 'Consumer Staples', date: '2026-12-03', timing: 'BMO', status: 'upcoming', epsEst: '$0.98', epsAct: '-', revEst: '$34.2B', revAct: '-', surprise: '-' },
+  { id: 'up-08', ticker: 'ULTA', company: 'Ulta Beauty, Inc.', sector: 'Consumer Discretionary', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$4.52', epsAct: '-', revEst: '$2.50B', revAct: '-', surprise: '-' },
+  { id: 'up-09', ticker: 'HPE', company: 'Hewlett Packard Enterprise', sector: 'Information Technology', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$0.56', epsAct: '-', revEst: '$8.25B', revAct: '-', surprise: '-' },
+  { id: 'up-10', ticker: 'COO', company: 'The Cooper Companies, Inc.', sector: 'Health Care', date: '2026-12-03', timing: 'AMC', status: 'upcoming', epsEst: '$1.00', epsAct: '-', revEst: '$1.02B', revAct: '-', surprise: '-' },
+  { id: 'up-11', ticker: 'AZO', company: 'AutoZone, Inc.', sector: 'Consumer Discretionary', date: '2026-12-08', timing: 'BMO', status: 'upcoming', epsEst: '$33.60', epsAct: '-', revEst: '$4.30B', revAct: '-', surprise: '-' },
+  { id: 'up-12', ticker: 'SNPS', company: 'Synopsys, Inc.', sector: 'Information Technology', date: '2026-12-08', timing: 'AMC', status: 'upcoming', epsEst: '$3.30', epsAct: '-', revEst: '$1.63B', revAct: '-', surprise: '-' },
+  { id: 'up-13', ticker: 'CPB', company: 'The Campbell’s Company', sector: 'Consumer Staples', date: '2026-12-09', timing: 'BMO', status: 'upcoming', epsEst: '$0.87', epsAct: '-', revEst: '$2.79B', revAct: '-', surprise: '-' },
+  { id: 'up-14', ticker: 'AVGO', company: 'Broadcom Inc.', sector: 'Information Technology', date: '2026-12-09', timing: 'AMC', status: 'upcoming', epsEst: '$1.39', epsAct: '-', revEst: '$14.0B', revAct: '-', surprise: '-' },
+  { id: 'up-15', ticker: 'ORCL', company: 'Oracle Corporation', sector: 'Information Technology', date: '2026-12-09', timing: 'AMC', status: 'upcoming', epsEst: '$1.48', epsAct: '-', revEst: '$14.1B', revAct: '-', surprise: '-' },
+  { id: 'up-16', ticker: 'ADBE', company: 'Adobe Inc.', sector: 'Information Technology', date: '2026-12-09', timing: 'AMC', status: 'upcoming', epsEst: '$4.67', epsAct: '-', revEst: '$5.60B', revAct: '-', surprise: '-' },
+  { id: 'up-17', ticker: 'COST', company: 'Costco Wholesale Corp.', sector: 'Consumer Staples', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$3.82', epsAct: '-', revEst: '$62.1B', revAct: '-', surprise: '-' },
+  { id: 'up-18', ticker: 'LULU', company: 'Lululemon Athletica Inc.', sector: 'Consumer Discretionary', date: '2026-12-10', timing: 'AMC', status: 'upcoming', epsEst: '$2.71', epsAct: '-', revEst: '$2.36B', revAct: '-', surprise: '-' },
+  { id: 'up-19', ticker: 'JBL', company: 'Jabil Inc.', sector: 'Information Technology', date: '2026-12-16', timing: 'BMO', status: 'upcoming', epsEst: '$1.88', epsAct: '-', revEst: '$6.60B', revAct: '-', surprise: '-' },
+  { id: 'up-20', ticker: 'GIS', company: 'General Mills, Inc.', sector: 'Consumer Staples', date: '2026-12-16', timing: 'BMO', status: 'upcoming', epsEst: '$1.22', epsAct: '-', revEst: '$5.14B', revAct: '-', surprise: '-' },
+  { id: 'up-21', ticker: 'MU', company: 'Micron Technology, Inc.', sector: 'Information Technology', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$1.75', epsAct: '-', revEst: '$8.70B', revAct: '-', surprise: '-' },
+  { id: 'up-22', ticker: 'LEN', company: 'Lennar Corporation', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$4.15', epsAct: '-', revEst: '$10.1B', revAct: '-', surprise: '-' },
+  { id: 'up-23', ticker: 'ACN', company: 'Accenture plc', sector: 'Information Technology', date: '2026-12-17', timing: 'BMO', status: 'upcoming', epsEst: '$3.42', epsAct: '-', revEst: '$17.1B', revAct: '-', surprise: '-' },
+  { id: 'up-24', ticker: 'NKE', company: 'NIKE, Inc.', sector: 'Consumer Discretionary', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$0.63', epsAct: '-', revEst: '$12.1B', revAct: '-', surprise: '-' },
+  { id: 'up-25', ticker: 'FDX', company: 'FedEx Corporation', sector: 'Industrials', date: '2026-12-17', timing: 'AMC', status: 'upcoming', epsEst: '$3.98', epsAct: '-', revEst: '$22.1B', revAct: '-', surprise: '-' },
+  { id: 'up-26', ticker: 'DRI', company: 'Darden Restaurants, Inc.', sector: 'Consumer Discretionary', date: '2026-12-18', timing: 'BMO', status: 'upcoming', epsEst: '$2.02', epsAct: '-', revEst: '$2.87B', revAct: '-', surprise: '-' },
+  { id: 'up-27', ticker: 'CCL', company: 'Carnival Corporation', sector: 'Consumer Discretionary', date: '2026-12-18', timing: 'BMO', status: 'upcoming', epsEst: '$0.08', epsAct: '-', revEst: '$5.93B', revAct: '-', surprise: '-' },
+  { id: 'up-28', ticker: 'PAYX', company: 'Paychex, Inc.', sector: 'Industrials', date: '2026-12-18', timing: 'BMO', status: 'upcoming', epsEst: '$1.12', epsAct: '-', revEst: '$1.31B', revAct: '-', surprise: '-' },
+  { id: 'up-29', ticker: 'CTAS', company: 'Cintas Corporation', sector: 'Industrials', date: '2026-12-22', timing: 'BMO', status: 'upcoming', epsEst: '$1.01', epsAct: '-', revEst: '$2.56B', revAct: '-', surprise: '-' },
   { id: 'up-30', ticker: 'JPM', company: 'JPMorgan Chase & Co.', sector: 'Financials', date: '2027-01-14', timing: 'BMO', status: 'upcoming', epsEst: '$4.05', epsAct: '-', revEst: '$41.8B', revAct: '-', surprise: '-' },
 
   // ===== REPORTED (30개) =====
@@ -243,27 +278,26 @@ const INITIAL_EARNINGS = [
   { id: 'rep-30', ticker: 'TSLA', company: 'Tesla, Inc.', sector: 'Consumer Discretionary', date: '2026-10-21', timing: 'AMC', status: 'reported', epsEst: '$0.58', epsAct: '$0.72', revEst: '$25.4B', revAct: '$25.2B', surprise: '+24.1%' },
 ];
 
-const LIMIT_PER_STATUS = 30;
-
 function curateEarningsList(items) {
   const dedupedMap = new Map();
   items.forEach((item) => {
-    const key = `${item.ticker.toUpperCase()}_${item.date}_${item.status}`;
+    const ticker = (item.ticker || '').toUpperCase();
+    const key = `${ticker}_${item.date}_${item.status}`;
     dedupedMap.set(key, {
       ...item,
-      ticker: item.ticker.toUpperCase(),
+      ticker,
     });
   });
 
   const allUnique = Array.from(dedupedMap.values());
 
-  // 예정: 발표일이 가장 빠른 순(오름차순) 30개
+  // 예정: 빠른 날짜 순(오름차순) 30개
   const upcomingSorted = allUnique
     .filter((item) => item.status === 'upcoming')
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, LIMIT_PER_STATUS);
 
-  // 발표완료: 발표일이 가장 최근 순(내림차순) 30개
+  // 발표완료: 최근 날짜 순(내림차순) 30개
   const reportedSorted = allUnique
     .filter((item) => item.status === 'reported')
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -282,7 +316,7 @@ function buildFallbackSummary(item) {
       item.timing === 'BMO' ? '장 시작 전' : '장 마감 후'
     } 분기 실적을 발표할 예정입니다.\n• 시장 컨센서스는 EPS ${item.epsEst}, 매출 ${
       item.revEst
-    } 수준으로 형성되어 있습니다.\n• 핵심 사업부 매출 성장률과 다음 분기 가이던스 상향 여부가 주가 방향을 결정할 전망입니다.\n• 상단에 VITE_GEMINI_API_KEY를 연결하면 최신 애널리스트 프리뷰와 컨퍼런스콜 핵심 포인트를 실시간 요약합니다.`;
+    } 수준으로 형성되어 있습니다.\n• 핵심 사업부 매출 성장률과 다음 분기 가이던스 상향 여부가 주가 방향을 결정할 전망입니다.\n• Vercel 환경변수에 VITE_GEMINI_API_KEY를 연결하면 최신 애널리스트 프리뷰와 컨퍼런스콜 핵심 포인트를 실시간 요약합니다.`;
   }
   return `• ${item.company} (${item.ticker})는 ${item.date} 실적 발표에서 EPS ${item.epsAct}(예상 ${item.epsEst}), 매출 ${item.revAct}(예상 ${item.revEst})를 기록했습니다.\n• 어닝 서프라이즈는 ${item.surprise}로 집계되었습니다.\n• 주력 부문 수요 흐름과 영업이익률 추이, 경영진의 차기 분기 가이던스가 핵심 평가 요소입니다.\n• Vercel 환경변수에 VITE_GEMINI_API_KEY를 설정하면 실제 어닝콜 발언 기반의 다국어 AI 요약을 바로 확인할 수 있습니다.`;
 }
@@ -315,11 +349,22 @@ async function generateGeminiText(apiKey, prompt) {
 export default function App() {
   const [lang, setLang] = useState('ko');
   const [earnings, setEarnings] = useState(INITIAL_EARNINGS);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'upcoming' | 'reported' | 'watchlist'
   const [sectorFilter, setSectorFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const [watchlist, setWatchlist] = useState(() => {
+    try {
+      const raw = localStorage.getItem(WATCHLIST_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.slice(0, MAX_WATCHLIST) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [summaryText, setSummaryText] = useState('');
@@ -328,12 +373,58 @@ export default function App() {
   const t = UI_TEXT[lang] || UI_TEXT.ko;
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(watchlist.slice(0, MAX_WATCHLIST)));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [watchlist]);
+
   const curated = useMemo(() => curateEarningsList(earnings), [earnings]);
 
+  const watchlistSet = useMemo(
+    () => new Set(watchlist.map((w) => w.ticker.toUpperCase())),
+    [watchlist]
+  );
+
+  const toggleWatchlist = (item) => {
+    const tickerKey = item.ticker.toUpperCase();
+    setErrorMsg('');
+
+    setWatchlist((prev) => {
+      const exists = prev.some((w) => w.ticker.toUpperCase() === tickerKey);
+      if (exists) {
+        return prev.filter((w) => w.ticker.toUpperCase() !== tickerKey);
+      }
+      if (prev.length >= MAX_WATCHLIST) {
+        setErrorMsg(t.watchlistFull);
+        return prev;
+      }
+      return [
+        {
+          ticker: tickerKey,
+          company: item.company,
+          sector: item.sector,
+          date: item.date,
+          timing: item.timing,
+          status: item.status,
+          epsEst: item.epsEst,
+          epsAct: item.epsAct,
+          revEst: item.revEst,
+          revAct: item.revAct,
+          surprise: item.surprise,
+        },
+        ...prev,
+      ];
+    });
+  };
+
   const sectors = useMemo(() => {
-    const set = new Set(curated.combined.map((item) => item.sector).filter(Boolean));
+    const pool = [...curated.combined, ...watchlist];
+    const set = new Set(pool.map((item) => item.sector).filter(Boolean));
     return ['all', ...Array.from(set)];
-  }, [curated.combined]);
+  }, [curated.combined, watchlist]);
 
   const filteredItems = useMemo(() => {
     let baseList = curated.combined;
@@ -341,6 +432,8 @@ export default function App() {
       baseList = curated.upcoming;
     } else if (statusFilter === 'reported') {
       baseList = curated.reported;
+    } else if (statusFilter === 'watchlist') {
+      baseList = watchlist.slice(0, MAX_WATCHLIST);
     }
 
     return baseList.filter((item) => {
@@ -353,7 +446,7 @@ export default function App() {
         item.sector.toLowerCase().includes(q);
       return matchesSector && matchesQuery;
     });
-  }, [curated, statusFilter, sectorFilter, searchQuery]);
+  }, [curated, statusFilter, sectorFilter, searchQuery, watchlist]);
 
   const handleLiveLookup = async (e) => {
     e.preventDefault();
@@ -407,12 +500,10 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       };
 
       setEarnings((prev) => [newRecord, ...prev]);
-      if (newRecord.status === 'upcoming' && statusFilter === 'reported') {
-        setStatusFilter('upcoming');
-      } else if (newRecord.status === 'reported' && statusFilter === 'upcoming') {
-        setStatusFilter('reported');
+      if (statusFilter === 'watchlist') {
+        setStatusFilter('all');
       }
-    } catch (err) {
+    } catch {
       setErrorMsg('실시간 종목 조회 중 오류가 발생했습니다. 티커 철자를 확인한 뒤 다시 시도해 주세요.');
     } finally {
       setIsSearching(false);
@@ -444,7 +535,7 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
 
       const result = await generateGeminiText(apiKey, prompt);
       setSummaryText(result || buildFallbackSummary(item));
-    } catch (err) {
+    } catch {
       setSummaryText(buildFallbackSummary(item));
     } finally {
       setIsSummarizing(false);
@@ -469,7 +560,11 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
                 {t.title}
               </h1>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
-                {t.countBadge(curated.upcoming.length, curated.reported.length)}
+                {t.countBadge(
+                  curated.upcoming.length,
+                  curated.reported.length,
+                  watchlist.length
+                )}
               </span>
             </div>
             <p className="mt-1 text-sm text-slate-400">{t.subtitle}</p>
@@ -581,6 +676,18 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
               >
                 {t.reported}
               </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('watchlist')}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
+                  statusFilter === 'watchlist'
+                    ? 'bg-amber-400 text-slate-950'
+                    : 'bg-slate-800 text-amber-300 hover:bg-slate-700'
+                }`}
+              >
+                <Star className="h-3.5 w-3.5 fill-current" />
+                <span>{t.watchlistTab(watchlist.length)}</span>
+              </button>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -617,16 +724,21 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
 
         {filteredItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-10 text-center">
-            <p className="text-base font-medium text-slate-300">{t.noResults}</p>
-            <p className="mt-1 text-sm text-slate-500">{t.addTickerHint}</p>
+            <p className="text-base font-medium text-slate-300">
+              {statusFilter === 'watchlist' ? t.emptyWatchlist : t.noResults}
+            </p>
+            {statusFilter !== 'watchlist' && (
+              <p className="mt-1 text-sm text-slate-500">{t.addTickerHint}</p>
+            )}
           </div>
         ) : (
           <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item) => {
+            {filteredItems.map((item, idx) => {
               const isUpcoming = item.status === 'upcoming';
+              const isSaved = watchlistSet.has(item.ticker.toUpperCase());
               return (
                 <article
-                  key={item.id}
+                  key={`${item.id}-${idx}`}
                   className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-5 transition hover:border-slate-700"
                 >
                   <div>
@@ -638,17 +750,33 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
                         <span>{item.timing === 'BMO' ? t.timeBMO : t.timeAMC}</span>
                       </div>
 
-                      {isUpcoming ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-300">
-                          <Clock className="h-3 w-3" />
-                          {t.statusUpcoming}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
-                          <CheckCircle2 className="h-3 w-3" />
-                          {t.statusReported}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {isUpcoming ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-300">
+                            <Clock className="h-3 w-3" />
+                            {t.statusUpcoming}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t.statusReported}
+                          </span>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => toggleWatchlist(item)}
+                          title={isSaved ? t.inWatchlist : t.addWatchlist}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
+                            isSaved
+                              ? 'bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/40'
+                              : 'bg-slate-800 text-slate-400 hover:text-amber-300'
+                          }`}
+                        >
+                          <Star className={`h-3 w-3 ${isSaved ? 'fill-current' : ''}`} />
+                          <span>{isSaved ? t.inWatchlist : t.addWatchlist}</span>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="mb-4">
