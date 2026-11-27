@@ -21,8 +21,8 @@ const MAX_WATCHLIST = 50;
 const UI_TEXT = {
   ko: {
     title: 'S&P 500 실시간 실적발표 허브',
-    subtitle: '실적 일정 조회 · GICS 섹터 필터 · 다국어 AI 어닝콜 요약',
-    searchPlaceholder: '티커 또는 기업명 검색 (예: AAPL, NVDA, JPM)',
+    subtitle: '실적 일정 조회 · GICS 섹터 필터 · 실제 어닝콜 기반 AI 심층 요약',
+    searchPlaceholder: '티커 또는 기업명 검색 (예: AAPL, NVDA, DE, JPM)',
     searchBtn: '실시간 조회',
     searching: '조회 중...',
     all: '전체 (60)',
@@ -36,14 +36,15 @@ const UI_TEXT = {
     revEst: '매출 예상',
     revAct: '매출 실제',
     surprise: '어닝 서프라이즈',
-    aiSummaryBtn: 'AI 어닝콜 요약',
-    aiSummaryTitle: 'AI 어닝콜 핵심 요약',
-    aiLoading: '실적 발표 및 컨퍼런스콜 내용을 분석 중입니다...',
+    aiSummaryBtn: '실제 어닝콜 AI 요약',
+    aiSummaryTitle: '실제 어닝콜(Earnings Call) AI 심층 요약',
+    aiLoading: '구글 검색으로 실제 실적 공시 및 컨퍼런스콜 발언을 수집·분석 중입니다...',
     noApiKey:
-      'VITE_GEMINI_API_KEY가 설정되지 않아 기본 요약을 표시합니다. Vercel 환경변수에 키를 추가하면 실시간 AI 요약과 검색이 활성화됩니다.',
+      'VITE_GEMINI_API_KEY가 아직 빌드에 반영되지 않았습니다. Vercel Settings → Environment Variables에 키를 저장한 뒤 Deployments에서 Redeploy를 실행해 주세요.',
     watchlistFull: `관심목록은 최대 ${MAX_WATCHLIST}개까지 등록할 수 있습니다. 기존 종목을 해제한 뒤 추가해 주세요.`,
     addWatchlist: '관심 추가',
     inWatchlist: '관심 등록됨',
+    regenerate: '다시 심층 분석',
     close: '닫기',
     noResults: '조건에 맞는 실적 발표 일정이 없습니다.',
     emptyWatchlist: `관심목록이 비어 있습니다. 카드의 별 아이콘을 눌러 최대 ${MAX_WATCHLIST}개까지 추가해 보세요.`,
@@ -59,8 +60,8 @@ const UI_TEXT = {
   },
   en: {
     title: 'S&P 500 Earnings Hub',
-    subtitle: 'Earnings Schedule · Sector Filter · Multilingual AI Call Summaries',
-    searchPlaceholder: 'Search ticker or company (e.g. AAPL, NVDA, JPM)',
+    subtitle: 'Earnings Schedule · Sector Filter · Deep AI Earnings Call Summaries',
+    searchPlaceholder: 'Search ticker or company (e.g. AAPL, NVDA, DE, JPM)',
     searchBtn: 'Live Lookup',
     searching: 'Looking up...',
     all: 'All (60)',
@@ -74,14 +75,15 @@ const UI_TEXT = {
     revEst: 'Rev. Est.',
     revAct: 'Rev. Act.',
     surprise: 'Surprise',
-    aiSummaryBtn: 'AI Call Summary',
-    aiSummaryTitle: 'AI Earnings Call Summary',
-    aiLoading: 'Analyzing earnings release and call highlights...',
+    aiSummaryBtn: 'Deep AI Call Summary',
+    aiSummaryTitle: 'AI Earnings Call Deep Summary',
+    aiLoading: 'Searching earnings release and conference call transcript highlights...',
     noApiKey:
-      'VITE_GEMINI_API_KEY is not set; showing sample summaries. Add VITE_GEMINI_API_KEY in Vercel Environment Variables to enable live AI summaries and lookup.',
+      'VITE_GEMINI_API_KEY is not active in this build. Save it in Vercel Environment Variables and trigger Redeploy.',
     watchlistFull: `Watchlist supports up to ${MAX_WATCHLIST} stocks. Remove an item before adding another.`,
     addWatchlist: 'Watch',
     inWatchlist: 'Watching',
+    regenerate: 'Re-analyze',
     close: 'Close',
     noResults: 'No earnings events match your current filters.',
     emptyWatchlist: `Your watchlist is empty. Click the star button on any card to save up to ${MAX_WATCHLIST} stocks.`,
@@ -97,8 +99,8 @@ const UI_TEXT = {
   },
   ja: {
     title: 'S&P 500 決算スケジュールハブ',
-    subtitle: '決算日程検索 · セクター絞り込み · 多言語AI決算要約',
-    searchPlaceholder: 'ティッカーまたは企業名で検索 (例: AAPL, NVDA, JPM)',
+    subtitle: '決算日程検索 · セクター絞り込み · 実際の決算コールAI詳細要約',
+    searchPlaceholder: 'ティッカーまたは企業名で検索 (例: AAPL, NVDA, DE, JPM)',
     searchBtn: 'リアルタイム検索',
     searching: '検索中...',
     all: 'すべて (60)',
@@ -112,14 +114,15 @@ const UI_TEXT = {
     revEst: '売上 予想',
     revAct: '売上 実績',
     surprise: 'サプライズ',
-    aiSummaryBtn: 'AI 決算要約',
-    aiSummaryTitle: 'AI 決算コール要約',
-    aiLoading: '決算内容とカンファレンスコールを分析中...',
+    aiSummaryBtn: 'AI 決算コール要約',
+    aiSummaryTitle: 'AI 決算コール詳細要約',
+    aiLoading: '決算発表とカンファレンスコール発言を検索・分析中...',
     noApiKey:
-      'VITE_GEMINI_API_KEY が未設定のためサンプル要約を表示しています。Vercelの環境変数に設定するとリアルタイムAI要約と検索が有効になります。',
+      'VITE_GEMINI_API_KEY がビルドに反映されていません。Vercelの環境変数設定後に Redeploy を実行してください。',
     watchlistFull: `ウォッチリストは最大${MAX_WATCHLIST}件まで登録できます。解除してから追加してください。`,
     addWatchlist: 'お気に入り',
     inWatchlist: '登録済み',
+    regenerate: '再分析',
     close: '閉じる',
     noResults: '条件に一致する決算発表がありません。',
     emptyWatchlist: `ウォッチリストが空です。カードの星マークから最大${MAX_WATCHLIST}件まで追加できます。`,
@@ -135,8 +138,8 @@ const UI_TEXT = {
   },
   zh: {
     title: '标普500财报日历中心',
-    subtitle: '财报日程查询 · 行业筛选 · 多语言AI财报电话会摘要',
-    searchPlaceholder: '搜索代码或公司名称（如 AAPL, NVDA, JPM）',
+    subtitle: '财报日程查询 · 行业筛选 · 真实电话会议AI深度摘要',
+    searchPlaceholder: '搜索代码或公司名称（如 AAPL, NVDA, DE, JPM）',
     searchBtn: '实时查询',
     searching: '查询中...',
     all: '全部 (60)',
@@ -150,14 +153,15 @@ const UI_TEXT = {
     revEst: '营收 预期',
     revAct: '营收 实际',
     surprise: '业绩超预期',
-    aiSummaryBtn: 'AI 财报摘要',
-    aiSummaryTitle: 'AI 财报电话会摘要',
-    aiLoading: '正在分析财报与电话会议要点...',
+    aiSummaryBtn: 'AI 电话会深度摘要',
+    aiSummaryTitle: '真实财报电话会议 AI 深度摘要',
+    aiLoading: '正在检索财报公告与电话会议管理层发言并生成深度分析...',
     noApiKey:
-      '未配置 VITE_GEMINI_API_KEY，当前显示示例摘要。请在 Vercel 环境变量中添加密钥以启用实时 AI 摘要与查询。',
+      'VITE_GEMINI_API_KEY 尚未生效。请在 Vercel 环境变量中保存密钥后执行 Redeploy。',
     watchlistFull: `自选股最多支持${MAX_WATCHLIST}只股票，请先取消一项后再添加。`,
     addWatchlist: '加自选',
     inWatchlist: '已自选',
+    regenerate: '重新分析',
     close: '关闭',
     noResults: '没有符合当前筛选条件的财报日程。',
     emptyWatchlist: `自选股为空。点击卡片上的星标最多可添加${MAX_WATCHLIST}只股票。`,
@@ -173,8 +177,8 @@ const UI_TEXT = {
   },
   es: {
     title: 'Centro de Resultados S&P 500',
-    subtitle: 'Calendario de Ganancias · Filtros por Sector · Resúmenes IA Multilingües',
-    searchPlaceholder: 'Buscar ticker o empresa (ej. AAPL, NVDA, JPM)',
+    subtitle: 'Calendario de Ganancias · Filtros por Sector · Análisis IA de Llamadas',
+    searchPlaceholder: 'Buscar ticker o empresa (ej. AAPL, NVDA, DE, JPM)',
     searchBtn: 'Consulta en vivo',
     searching: 'Consultando...',
     all: 'Todos (60)',
@@ -188,14 +192,15 @@ const UI_TEXT = {
     revEst: 'Ing. Est.',
     revAct: 'Ing. Real',
     surprise: 'Sorpresa',
-    aiSummaryBtn: 'Resumen IA',
-    aiSummaryTitle: 'Resumen IA de Resultados',
-    aiLoading: 'Analizando el reporte de ganancias y la llamada...',
+    aiSummaryBtn: 'Resumen IA Detallado',
+    aiSummaryTitle: 'Análisis Profundo IA de la Llamada',
+    aiLoading: 'Buscando comunicados y declaraciones de la conferencia de resultados...',
     noApiKey:
-      'VITE_GEMINI_API_KEY no está configurada; se muestran resúmenes de ejemplo. Añade la clave en Vercel para activar el análisis en vivo.',
+      'VITE_GEMINI_API_KEY no está activa en esta compilación. Guárdala en Vercel y ejecuta Redeploy.',
     watchlistFull: `La lista de seguimiento admite hasta ${MAX_WATCHLIST} acciones. Quita una antes de añadir otra.`,
     addWatchlist: 'Seguir',
     inWatchlist: 'Siguiendo',
+    regenerate: 'Reanalizar',
     close: 'Cerrar',
     noResults: 'No hay eventos que coincidan con los filtros actuales.',
     emptyWatchlist: `Tu lista de seguimiento está vacía. Toca la estrella en cualquier tarjeta para guardar hasta ${MAX_WATCHLIST}.`,
@@ -310,40 +315,41 @@ function curateEarningsList(items) {
   };
 }
 
-function buildFallbackSummary(item) {
-  if (item.status === 'upcoming') {
-    return `• ${item.company} (${item.ticker})는 ${item.date} ${
-      item.timing === 'BMO' ? '장 시작 전' : '장 마감 후'
-    } 분기 실적을 발표할 예정입니다.\n• 시장 컨센서스는 EPS ${item.epsEst}, 매출 ${
-      item.revEst
-    } 수준으로 형성되어 있습니다.\n• 핵심 사업부 매출 성장률과 다음 분기 가이던스 상향 여부가 주가 방향을 결정할 전망입니다.\n• Vercel 환경변수에 VITE_GEMINI_API_KEY를 연결하면 최신 애널리스트 프리뷰와 컨퍼런스콜 핵심 포인트를 실시간 요약합니다.`;
-  }
-  return `• ${item.company} (${item.ticker})는 ${item.date} 실적 발표에서 EPS ${item.epsAct}(예상 ${item.epsEst}), 매출 ${item.revAct}(예상 ${item.revEst})를 기록했습니다.\n• 어닝 서프라이즈는 ${item.surprise}로 집계되었습니다.\n• 주력 부문 수요 흐름과 영업이익률 추이, 경영진의 차기 분기 가이던스가 핵심 평가 요소입니다.\n• Vercel 환경변수에 VITE_GEMINI_API_KEY를 설정하면 실제 어닝콜 발언 기반의 다국어 AI 요약을 바로 확인할 수 있습니다.`;
-}
-
 async function generateGeminiText(apiKey, prompt) {
+  const cleanKey = (apiKey || '').trim();
+  if (!cleanKey) {
+    throw new Error('VITE_GEMINI_API_KEY가 비어 있습니다.');
+  }
+
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
-    apiKey
+    cleanKey
   )}`;
+
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       tools: [{ google_search: {} }],
     }),
   });
 
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(`Gemini API HTTP ${res.status}`);
+    const apiMessage = data?.error?.message || `HTTP ${res.status}`;
+    throw new Error(`Gemini API 오류 (${res.status}): ${apiMessage}`);
   }
 
-  const data = await res.json();
   const parts = data?.candidates?.[0]?.content?.parts || [];
-  return parts
+  const text = parts
     .map((p) => p.text || '')
     .join('\n')
     .trim();
+
+  if (!text) {
+    throw new Error('Gemini API 응답 본문이 비어 있습니다.');
+  }
+  return text;
 }
 
 export default function App() {
@@ -368,6 +374,7 @@ export default function App() {
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [summaryText, setSummaryText] = useState('');
+  const [summaryError, setSummaryError] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
 
   const t = UI_TEXT[lang] || UI_TEXT.ko;
@@ -377,7 +384,7 @@ export default function App() {
     try {
       localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(watchlist.slice(0, MAX_WATCHLIST)));
     } catch {
-      // ignore storage quota errors
+      // ignore storage errors
     }
   }, [watchlist]);
 
@@ -403,6 +410,7 @@ export default function App() {
       }
       return [
         {
+          id: item.id || `watch-${tickerKey}-${Date.now()}`,
           ticker: tickerKey,
           company: item.company,
           sector: item.sector,
@@ -461,7 +469,7 @@ export default function App() {
 
     setIsSearching(true);
     try {
-      const prompt = `Find the latest or upcoming quarterly earnings release information for S&P 500 stock "${rawQuery}".
+      const prompt = `Search Google for the latest or upcoming quarterly earnings release details of S&P 500 stock "${rawQuery}".
 Return ONLY a valid JSON object (no markdown fences) with these exact keys:
 {
   "ticker": "UPPERCASE TICKER",
@@ -480,7 +488,7 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       const text = await generateGeminiText(apiKey, prompt);
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('Invalid JSON response');
+        throw new Error('검색 결과에서 종목 JSON 형식을 파싱하지 못했습니다.');
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
@@ -503,8 +511,8 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       if (statusFilter === 'watchlist') {
         setStatusFilter('all');
       }
-    } catch {
-      setErrorMsg('실시간 종목 조회 중 오류가 발생했습니다. 티커 철자를 확인한 뒤 다시 시도해 주세요.');
+    } catch (err) {
+      setErrorMsg(err?.message || '실시간 종목 조회 중 오류가 발생했습니다.');
     } finally {
       setIsSearching(false);
     }
@@ -513,30 +521,47 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
   const handleOpenSummary = async (item) => {
     setSelectedItem(item);
     setSummaryText('');
+    setSummaryError('');
 
     if (!apiKey) {
-      setSummaryText(buildFallbackSummary(item));
+      setSummaryError(t.noApiKey);
       return;
     }
 
     setIsSummarizing(true);
     try {
       const langNames = {
-        ko: 'Korean',
+        ko: 'Korean (한국어)',
         en: 'English',
-        ja: 'Japanese',
-        zh: 'Simplified Chinese',
-        es: 'Spanish',
+        ja: 'Japanese (日本語)',
+        zh: 'Simplified Chinese (简体中文)',
+        es: 'Spanish (Español)',
       };
-      const targetLang = langNames[lang] || 'Korean';
+      const targetLang = langNames[lang] || 'Korean (한국어)';
 
-      const prompt = `Provide a concise 4-bullet earnings and earnings call summary for ${item.company} (${item.ticker}), earnings date ${item.date}, status: ${item.status}.
-Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, margin/guidance takeaways, and key management themes.`;
+      const prompt =
+        item.status === 'reported'
+          ? `Use Google Search to find the actual Q3/Q4 earnings release and earnings conference call transcript highlights for ${item.company} (${item.ticker}) around ${item.date}.
+Write a thorough, structured earnings call summary strictly in ${targetLang} covering these 5 sections with specific numbers and executive commentary:
+1. [실적 핵심 수치 및 서프라이즈 요인] (Actual Revenue, EPS, YoY growth, and what beat or missed consensus)
+2. [사업부별 세부 성과] (Segment revenue breakdown, volume/pricing trends, regional demand)
+3. [경영진 어닝콜 주요 발언 (CEO/CFO)] (Key strategic priorities, AI/CapEx/cost-saving remarks from the call)
+4. [차기 분기 및 연간 가이던스] (Updated revenue/EPS/margin guidance and outlook)
+5. [애널리스트 Q&A 핵심 쟁점 및 리스크] (Main questions raised by Wall Street analysts on the call and management's response)`
+          : `Use Google Search to find the latest Wall Street consensus, management prior guidance, and key preview catalysts for ${item.company} (${item.ticker}) ahead of its upcoming earnings report on ${item.date}.
+Write a thorough, structured earnings preview strictly in ${targetLang} covering these 5 sections:
+1. [컨센서스 및 직전 분기 대비 기대치] (EPS/Revenue consensus vs prior quarter and year-ago figures)
+2. [핵심 관전 포인트 및 사업부별 체크리스트] (Key segments, product launches, or margin drivers to watch)
+3. [직전 어닝콜 경영진 가이던스 복기] (What CEO/CFO previously guided for this quarter)
+4. [주요 리스크 및 매크로 변수] (FX, tariffs, input costs, or competitive headwinds)
+5. [실적 발표 후 주가 변동 핵심 트리거] (What metric or guidance revision will move the stock)`;
 
       const result = await generateGeminiText(apiKey, prompt);
-      setSummaryText(result || buildFallbackSummary(item));
-    } catch {
-      setSummaryText(buildFallbackSummary(item));
+      setSummaryText(result);
+    } catch (err) {
+      setSummaryError(
+        `${err?.message || '실제 어닝콜 요약 호출 실패'}\n\n※ Vercel 대시보드 → Settings → Environment Variables에 VITE_GEMINI_API_KEY가 올바르게 저장되어 있는지와 Deployments에서 Redeploy가 완료되었는지 확인해 주세요.`
+      );
     } finally {
       setIsSummarizing(false);
     }
@@ -832,8 +857,8 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
       </div>
 
       {selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -853,22 +878,36 @@ Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, marg
               </button>
             </div>
 
-            <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm leading-relaxed text-slate-200 whitespace-pre-line">
+            <div className="max-h-96 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm leading-relaxed text-slate-200 whitespace-pre-line">
               {isSummarizing ? (
-                <div className="flex items-center gap-2.5 text-slate-400">
+                <div className="flex items-center gap-2.5 py-6 text-slate-400">
                   <RefreshCw className="h-4 w-4 animate-spin text-emerald-400" />
                   <span>{t.aiLoading}</span>
+                </div>
+              ) : summaryError ? (
+                <div className="rounded-lg border border-rose-500/30 bg-rose-950/30 p-3 text-rose-200">
+                  {summaryError}
                 </div>
               ) : (
                 summaryText
               )}
             </div>
 
-            <div className="mt-5 flex justify-end">
+            <div className="mt-5 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                disabled={isSummarizing}
+                onClick={() => handleOpenSummary(selectedItem)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>{t.regenerate}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setSelectedItem(null)}
-                className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
               >
                 {t.close}
               </button>
