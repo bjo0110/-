@@ -18,11 +18,58 @@ const WATCHLIST_STORAGE_KEY = 'sp500_earnings_watchlist_v1';
 const LIMIT_PER_STATUS = 30;
 const MAX_WATCHLIST = 50;
 
+// 기본 60개 외 S&P 500 주요 종목 디렉터리 (검색 시 즉시 노출용)
+const EXTRA_SP500_DIRECTORY = [
+  { ticker: 'BRK.B', company: 'Berkshire Hathaway Inc.', sector: 'Financials', date: '2027-02-24', timing: 'AMC', epsEst: '$4.75', epsAct: '-', revEst: '$92.4B', revAct: '-', surprise: '-' },
+  { ticker: 'LLY', company: 'Eli Lilly and Company', sector: 'Health Care', date: '2027-02-06', timing: 'BMO', epsEst: '$5.18', epsAct: '-', revEst: '$13.5B', revAct: '-', surprise: '-' },
+  { ticker: 'JNJ', company: 'Johnson & Johnson', sector: 'Health Care', date: '2027-01-21', timing: 'BMO', epsEst: '$2.02', epsAct: '-', revEst: '$22.5B', revAct: '-', surprise: '-' },
+  { ticker: 'UNH', company: 'UnitedHealth Group Incorporated', sector: 'Health Care', date: '2027-01-14', timing: 'BMO', epsEst: '$6.85', epsAct: '-', revEst: '$101.8B', revAct: '-', surprise: '-' },
+  { ticker: 'V', company: 'Visa Inc.', sector: 'Financials', date: '2027-01-28', timing: 'AMC', epsEst: '$2.66', epsAct: '-', revEst: '$9.52B', revAct: '-', surprise: '-' },
+  { ticker: 'MA', company: 'Mastercard Incorporated', sector: 'Financials', date: '2027-01-29', timing: 'BMO', epsEst: '$3.69', epsAct: '-', revEst: '$7.48B', revAct: '-', surprise: '-' },
+  { ticker: 'BAC', company: 'Bank of America Corporation', sector: 'Financials', date: '2027-01-15', timing: 'BMO', epsEst: '$0.85', epsAct: '-', revEst: '$25.4B', revAct: '-', surprise: '-' },
+  { ticker: 'WFC', company: 'Wells Fargo & Company', sector: 'Financials', date: '2027-01-14', timing: 'BMO', epsEst: '$1.34', epsAct: '-', revEst: '$20.5B', revAct: '-', surprise: '-' },
+  { ticker: 'GS', company: 'The Goldman Sachs Group, Inc.', sector: 'Financials', date: '2027-01-15', timing: 'BMO', epsEst: '$8.60', epsAct: '-', revEst: '$12.6B', revAct: '-', surprise: '-' },
+  { ticker: 'MS', company: 'Morgan Stanley', sector: 'Financials', date: '2027-01-16', timing: 'BMO', epsEst: '$1.72', epsAct: '-', revEst: '$15.1B', revAct: '-', surprise: '-' },
+  { ticker: 'XOM', company: 'Exxon Mobil Corporation', sector: 'Energy', date: '2027-01-31', timing: 'BMO', epsEst: '$1.86', epsAct: '-', revEst: '$85.4B', revAct: '-', surprise: '-' },
+  { ticker: 'CVX', company: 'Chevron Corporation', sector: 'Energy', date: '2027-01-31', timing: 'BMO', epsEst: '$2.42', epsAct: '-', revEst: '$48.9B', revAct: '-', surprise: '-' },
+  { ticker: 'PG', company: 'The Procter & Gamble Company', sector: 'Consumer Staples', date: '2027-01-22', timing: 'BMO', epsEst: '$1.87', epsAct: '-', revEst: '$21.9B', revAct: '-', surprise: '-' },
+  { ticker: 'KO', company: 'The Coca-Cola Company', sector: 'Consumer Staples', date: '2027-02-11', timing: 'BMO', epsEst: '$0.63', epsAct: '-', revEst: '$10.7B', revAct: '-', surprise: '-' },
+  { ticker: 'PEP', company: 'PepsiCo, Inc.', sector: 'Consumer Staples', date: '2027-02-04', timing: 'BMO', epsEst: '$1.94', epsAct: '-', revEst: '$27.9B', revAct: '-', surprise: '-' },
+  { ticker: 'PM', company: 'Philip Morris International Inc.', sector: 'Consumer Staples', date: '2027-02-06', timing: 'BMO', epsEst: '$1.50', epsAct: '-', revEst: '$9.42B', revAct: '-', surprise: '-' },
+  { ticker: 'ABBV', company: 'AbbVie Inc.', sector: 'Health Care', date: '2027-01-31', timing: 'BMO', epsEst: '$2.98', epsAct: '-', revEst: '$14.8B', revAct: '-', surprise: '-' },
+  { ticker: 'MRK', company: 'Merck & Co., Inc.', sector: 'Health Care', date: '2027-02-04', timing: 'BMO', epsEst: '$1.79', epsAct: '-', revEst: '$15.6B', revAct: '-', surprise: '-' },
+  { ticker: 'TMO', company: 'Thermo Fisher Scientific Inc.', sector: 'Health Care', date: '2027-01-29', timing: 'BMO', epsEst: '$5.92', epsAct: '-', revEst: '$11.3B', revAct: '-', surprise: '-' },
+  { ticker: 'ABT', company: 'Abbott Laboratories', sector: 'Health Care', date: '2027-01-22', timing: 'BMO', epsEst: '$1.34', epsAct: '-', revEst: '$10.7B', revAct: '-', surprise: '-' },
+  { ticker: 'ISRG', company: 'Intuitive Surgical, Inc.', sector: 'Health Care', date: '2027-01-23', timing: 'AMC', epsEst: '$1.79', epsAct: '-', revEst: '$2.25B', revAct: '-', surprise: '-' },
+  { ticker: 'GE', company: 'GE Aerospace', sector: 'Industrials', date: '2027-01-23', timing: 'BMO', epsEst: '$1.04', epsAct: '-', revEst: '$9.55B', revAct: '-', surprise: '-' },
+  { ticker: 'CAT', company: 'Caterpillar Inc.', sector: 'Industrials', date: '2027-01-30', timing: 'BMO', epsEst: '$5.04', epsAct: '-', revEst: '$16.2B', revAct: '-', surprise: '-' },
+  { ticker: 'HON', company: 'Honeywell International Inc.', sector: 'Industrials', date: '2027-02-06', timing: 'BMO', epsEst: '$2.32', epsAct: '-', revEst: '$9.85B', revAct: '-', surprise: '-' },
+  { ticker: 'UNP', company: 'Union Pacific Corporation', sector: 'Industrials', date: '2027-01-23', timing: 'BMO', epsEst: '$2.78', epsAct: '-', revEst: '$6.12B', revAct: '-', surprise: '-' },
+  { ticker: 'RTX', company: 'RTX Corporation', sector: 'Industrials', date: '2027-01-28', timing: 'BMO', epsEst: '$1.38', epsAct: '-', revEst: '$20.6B', revAct: '-', surprise: '-' },
+  { ticker: 'NFLX', company: 'Netflix, Inc.', sector: 'Communication Services', date: '2027-01-21', timing: 'AMC', epsEst: '$4.20', epsAct: '-', revEst: '$10.1B', revAct: '-', surprise: '-' },
+  { ticker: 'TMUS', company: 'T-Mobile US, Inc.', sector: 'Communication Services', date: '2027-01-29', timing: 'AMC', epsEst: '$2.29', epsAct: '-', revEst: '$21.4B', revAct: '-', surprise: '-' },
+  { ticker: 'VZ', company: 'Verizon Communications Inc.', sector: 'Communication Services', date: '2027-01-24', timing: 'BMO', epsEst: '$1.10', epsAct: '-', revEst: '$34.6B', revAct: '-', surprise: '-' },
+  { ticker: 'CMCSA', company: 'Comcast Corporation', sector: 'Communication Services', date: '2027-01-23', timing: 'BMO', epsEst: '$0.89', epsAct: '-', revEst: '$31.8B', revAct: '-', surprise: '-' },
+  { ticker: 'TXN', company: 'Texas Instruments Incorporated', sector: 'Information Technology', date: '2027-01-21', timing: 'AMC', epsEst: '$1.21', epsAct: '-', revEst: '$3.85B', revAct: '-', surprise: '-' },
+  { ticker: 'NOW', company: 'ServiceNow, Inc.', sector: 'Information Technology', date: '2027-01-29', timing: 'AMC', epsEst: '$3.65', epsAct: '-', revEst: '$2.96B', revAct: '-', surprise: '-' },
+  { ticker: 'IBM', company: 'International Business Machines', sector: 'Information Technology', date: '2027-01-29', timing: 'AMC', epsEst: '$3.76', epsAct: '-', revEst: '$17.5B', revAct: '-', surprise: '-' },
+  { ticker: 'UBER', company: 'Uber Technologies, Inc.', sector: 'Industrials', date: '2027-02-05', timing: 'BMO', epsEst: '$0.49', epsAct: '-', revEst: '$11.8B', revAct: '-', surprise: '-' },
+  { ticker: 'BKNG', company: 'Booking Holdings Inc.', sector: 'Consumer Discretionary', date: '2027-02-20', timing: 'AMC', epsEst: '$31.80', epsAct: '-', revEst: '$5.22B', revAct: '-', surprise: '-' },
+  { ticker: 'MCD', company: "McDonald's Corporation", sector: 'Consumer Discretionary', date: '2027-02-10', timing: 'BMO', epsEst: '$2.83', epsAct: '-', revEst: '$6.68B', revAct: '-', surprise: '-' },
+  { ticker: 'SBUX', company: 'Starbucks Corporation', sector: 'Consumer Discretionary', date: '2027-01-28', timing: 'AMC', epsEst: '$0.67', epsAct: '-', revEst: '$9.38B', revAct: '-', surprise: '-' },
+  { ticker: 'NEE', company: 'NextEra Energy, Inc.', sector: 'Utilities', date: '2027-01-24', timing: 'BMO', epsEst: '$0.53', epsAct: '-', revEst: '$6.25B', revAct: '-', surprise: '-' },
+  { ticker: 'SO', company: 'The Southern Company', sector: 'Utilities', date: '2027-02-20', timing: 'BMO', epsEst: '$0.62', epsAct: '-', revEst: '$6.48B', revAct: '-', surprise: '-' },
+  { ticker: 'PLD', company: 'Prologis, Inc.', sector: 'Real Estate', date: '2027-01-21', timing: 'BMO', epsEst: '$1.49', epsAct: '-', revEst: '$2.04B', revAct: '-', surprise: '-' },
+  { ticker: 'AMT', company: 'American Tower Corporation', sector: 'Real Estate', date: '2027-02-25', timing: 'BMO', epsEst: '$2.32', epsAct: '-', revEst: '$2.55B', revAct: '-', surprise: '-' },
+  { ticker: 'LIN', company: 'Linde plc', sector: 'Materials', date: '2027-02-06', timing: 'BMO', epsEst: '$3.92', epsAct: '-', revEst: '$8.34B', revAct: '-', surprise: '-' },
+  { ticker: 'FCX', company: 'Freeport-McMoRan Inc.', sector: 'Materials', date: '2027-01-23', timing: 'BMO', epsEst: '$0.30', epsAct: '-', revEst: '$5.85B', revAct: '-', surprise: '-' },
+];
+
 const UI_TEXT = {
   ko: {
     title: 'S&P 500 실시간 실적발표 허브',
     subtitle: '실적 일정 조회 · GICS 섹터 필터 · 다국어 AI 어닝콜 심층 요약',
-    searchPlaceholder: '티커 또는 기업명 검색 (예: AAPL, NVDA, DE, JPM)',
+    searchPlaceholder: '티커 또는 기업명 검색 (예: LLY, V, XOM, NFLX, AAPL)',
     searchBtn: '실시간 조회',
     searching: '조회 중...',
     all: '전체 (60)',
@@ -47,21 +94,22 @@ const UI_TEXT = {
     regenerate: '다시 심층 분석',
     close: '닫기',
     noResults: '조건에 맞는 실적 발표 일정이 없습니다.',
+    extraResultsTitle: '추가 S&P 500 검색 결과 (기본 60개 외)',
     emptyWatchlist: `관심목록이 비어 있습니다. 카드의 별 아이콘을 눌러 최대 ${MAX_WATCHLIST}개까지 추가해 보세요.`,
     addTickerHint: '상단 검색창에서 원하는 S&P 500 종목을 실시간으로 추가해 보세요.',
     statusUpcoming: '발표예정',
     statusReported: '발표완료',
     timeBMO: '장 시작 전 (BMO)',
     timeAMC: '장 마감 후 (AMC)',
-    countBadge: (upCount, repCount, watchCount) =>
-      `예정 ${upCount}개 · 발표완료 ${repCount}개 · 관심 ${watchCount}/${MAX_WATCHLIST}`,
+    countBadge: (upCount, repCount, watchCount, todayStr) =>
+      `기준 ${todayStr} · 예정 ${upCount}개 · 발표완료 ${repCount}개 · 관심 ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ 본 앱의 일정 및 AI 요약은 참고용이며, 최종 공시 및 투자 판단의 책임은 이용자 본인에게 있습니다.',
   },
   en: {
     title: 'S&P 500 Earnings Hub',
     subtitle: 'Earnings Schedule · Sector Filter · Multilingual AI Call Summaries',
-    searchPlaceholder: 'Search ticker or company (e.g. AAPL, NVDA, DE, JPM)',
+    searchPlaceholder: 'Search ticker or company (e.g. LLY, V, XOM, NFLX, AAPL)',
     searchBtn: 'Live Lookup',
     searching: 'Looking up...',
     all: 'All (60)',
@@ -86,21 +134,22 @@ const UI_TEXT = {
     regenerate: 'Re-analyze',
     close: 'Close',
     noResults: 'No earnings events match your current filters.',
+    extraResultsTitle: 'Additional S&P 500 Search Matches (Outside Core 60)',
     emptyWatchlist: `Your watchlist is empty. Click the star button on any card to save up to ${MAX_WATCHLIST} stocks.`,
     addTickerHint: 'Use the search bar above to look up any S&P 500 ticker live.',
     statusUpcoming: 'Upcoming',
     statusReported: 'Reported',
     timeBMO: 'Before Market Open',
     timeAMC: 'After Market Close',
-    countBadge: (upCount, repCount, watchCount) =>
-      `Upcoming ${upCount} · Reported ${repCount} · Watchlist ${watchCount}/${MAX_WATCHLIST}`,
+    countBadge: (upCount, repCount, watchCount, todayStr) =>
+      `As of ${todayStr} · Upcoming ${upCount} · Reported ${repCount} · Watchlist ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ Earnings dates and AI summaries are for informational purposes only. Always verify official filings.',
   },
   ja: {
     title: 'S&P 500 決算スケジュールハブ',
     subtitle: '決算日程検索 · セクター絞り込み · 多言語AI決算コール詳細要約',
-    searchPlaceholder: 'ティッカーまたは企業名で検索 (例: AAPL, NVDA, DE, JPM)',
+    searchPlaceholder: 'ティッカーまたは企業名で検索 (例: LLY, V, XOM, NFLX, AAPL)',
     searchBtn: 'リアルタイム検索',
     searching: '検索中...',
     all: 'すべて (60)',
@@ -125,21 +174,22 @@ const UI_TEXT = {
     regenerate: '再分析',
     close: '閉じる',
     noResults: '条件に一致する決算発表がありません。',
+    extraResultsTitle: 'その他のS&P 500検索結果（基本60銘柄以外）',
     emptyWatchlist: `ウォッチリストが空です。カードの星マークから最大${MAX_WATCHLIST}件まで追加できます。`,
     addTickerHint: '上の検索バーからS&P 500銘柄をリアルタイム検索できます。',
     statusUpcoming: '発表予定',
     statusReported: '発表済',
     timeBMO: '寄り付き前 (BMO)',
     timeAMC: '引け後 (AMC)',
-    countBadge: (upCount, repCount, watchCount) =>
-      `予定 ${upCount}件 · 発表済 ${repCount}件 · 注目 ${watchCount}/${MAX_WATCHLIST}`,
+    countBadge: (upCount, repCount, watchCount, todayStr) =>
+      `${todayStr}基準 · 予定 ${upCount}件 · 発表済 ${repCount}件 · 注目 ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ 決算日程およびAI要約は参考情報です。最終的な投資判断はご自身の責任で行ってください。',
   },
   zh: {
     title: '标普500财报日历中心',
     subtitle: '财报日程查询 · 行业筛选 · 多语言AI电话会议深度摘要',
-    searchPlaceholder: '搜索代码或公司名称（如 AAPL, NVDA, DE, JPM）',
+    searchPlaceholder: '搜索代码或公司名称（如 LLY, V, XOM, NFLX, AAPL）',
     searchBtn: '实时查询',
     searching: '查询中...',
     all: '全部 (60)',
@@ -164,21 +214,22 @@ const UI_TEXT = {
     regenerate: '重新分析',
     close: '关闭',
     noResults: '没有符合当前筛选条件的财报日程。',
+    extraResultsTitle: '其他标普500搜索匹配（60只核心之外）',
     emptyWatchlist: `自选股为空。点击卡片上的星标最多可添加${MAX_WATCHLIST}只股票。`,
     addTickerHint: '可在上方搜索框实时查询标普500成分股。',
     statusUpcoming: '即将发布',
     statusReported: '已发布',
     timeBMO: '盘前 (BMO)',
     timeAMC: '盘后 (AMC)',
-    countBadge: (upCount, repCount, watchCount) =>
-      `即将发布 ${upCount} · 已发布 ${repCount} · 自选 ${watchCount}/${MAX_WATCHLIST}`,
+    countBadge: (upCount, repCount, watchCount, todayStr) =>
+      `截至${todayStr} · 即将发布 ${upCount} · 已发布 ${repCount} · 自选 ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ 财报日期与 AI 摘要仅供参考，请以官方披露为准并审慎决策。',
   },
   es: {
     title: 'Centro de Resultados S&P 500',
     subtitle: 'Calendario de Ganancias · Filtros por Sector · Análisis IA Multilingüe',
-    searchPlaceholder: 'Buscar ticker o empresa (ej. AAPL, NVDA, DE, JPM)',
+    searchPlaceholder: 'Buscar ticker o empresa (ej. LLY, V, XOM, NFLX, AAPL)',
     searchBtn: 'Consulta en vivo',
     searching: 'Consultando...',
     all: 'Todos (60)',
@@ -203,14 +254,15 @@ const UI_TEXT = {
     regenerate: 'Reanalizar',
     close: 'Cerrar',
     noResults: 'No hay eventos que coincidan con los filtros actuales.',
+    extraResultsTitle: 'Coincidencias adicionales del S&P 500 (fuera de las 60 principales)',
     emptyWatchlist: `Tu lista de seguimiento está vacía. Toca la estrella en cualquier tarjeta para guardar hasta ${MAX_WATCHLIST}.`,
     addTickerHint: 'Usa la barra superior para consultar cualquier empresa del S&P 500.',
     statusUpcoming: 'Próximo',
     statusReported: 'Reportado',
     timeBMO: 'Antes de apertura',
     timeAMC: 'Tras el cierre',
-    countBadge: (upCount, repCount, watchCount) =>
-      `Próximos ${upCount} · Reportados ${repCount} · Seguimiento ${watchCount}/${MAX_WATCHLIST}`,
+    countBadge: (upCount, repCount, watchCount, todayStr) =>
+      `Al ${todayStr} · Próximos ${upCount} · Reportados ${repCount} · Seguimiento ${watchCount}/${MAX_WATCHLIST}`,
     disclaimer:
       '※ Las fechas y resúmenes generados por IA son informativos. Verifique siempre los comunicados oficiales.',
   },
@@ -280,14 +332,30 @@ const INITIAL_EARNINGS = [
   { id: 'rep-30', ticker: 'TSLA', company: 'Tesla, Inc.', sector: 'Consumer Discretionary', date: '2026-10-21', timing: 'AMC', status: 'reported', epsEst: '$0.58', epsAct: '$0.72', revEst: '$25.4B', revAct: '$25.2B', surprise: '+24.1%' },
 ];
 
-function curateEarningsList(items) {
+function getTodayDateStr() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function resolveLiveStatus(item, todayStr) {
+  if (!item?.date) return item.status === 'reported' ? 'reported' : 'upcoming';
+  // 발표일이 오늘보다 과거(< todayStr)이면 실시간으로 발표완료 처리
+  return item.date < todayStr ? 'reported' : 'upcoming';
+}
+
+function curateEarningsList(items, todayStr) {
   const dedupedMap = new Map();
   items.forEach((item) => {
     const ticker = (item.ticker || '').toUpperCase();
-    const key = `${ticker}_${item.date}_${item.status}`;
+    const liveStatus = resolveLiveStatus(item, todayStr);
+    const key = `${ticker}_${item.date}_${liveStatus}`;
     dedupedMap.set(key, {
       ...item,
       ticker,
+      status: liveStatus,
     });
   });
 
@@ -382,6 +450,7 @@ async function generateGeminiText(apiKey, prompt) {
 
 export default function App() {
   const [lang, setLang] = useState('ko');
+  const [todayStr, setTodayStr] = useState(() => getTodayDateStr());
   const [earnings, setEarnings] = useState(INITIAL_EARNINGS);
   const [statusFilter, setStatusFilter] = useState('all');
   const [sectorFilter, setSectorFilter] = useState('all');
@@ -408,6 +477,15 @@ export default function App() {
   const t = UI_TEXT[lang] || UI_TEXT.ko;
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
+  // 날짜가 자정을 넘겨 바뀔 때 자동으로 오늘 날짜 갱신
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const nextToday = getTodayDateStr();
+      setTodayStr((prev) => (prev === nextToday ? prev : nextToday));
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(watchlist.slice(0, MAX_WATCHLIST)));
@@ -416,7 +494,35 @@ export default function App() {
     }
   }, [watchlist]);
 
-  const curated = useMemo(() => curateEarningsList(earnings), [earnings]);
+  const curated = useMemo(() => curateEarningsList(earnings, todayStr), [earnings, todayStr]);
+
+  const coreTickersSet = useMemo(
+    () => new Set(curated.combined.map((item) => item.ticker.toUpperCase())),
+    [curated.combined]
+  );
+
+  // 기본 60개 외 S&P 500 기업 중 검색어와 일치하는 종목 즉시 매칭
+  const extraMatchedItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+
+    return EXTRA_SP500_DIRECTORY.filter((entry) => {
+      const upper = entry.ticker.toUpperCase();
+      if (coreTickersSet.has(upper)) return false;
+      return (
+        entry.ticker.toLowerCase().includes(q) ||
+        entry.company.toLowerCase().includes(q) ||
+        entry.sector.toLowerCase().includes(q)
+      );
+    }).map((entry) => {
+      const liveStatus = resolveLiveStatus(entry, todayStr);
+      return {
+        ...entry,
+        id: `extra-${entry.ticker}`,
+        status: liveStatus,
+      };
+    });
+  }, [searchQuery, coreTickersSet, todayStr]);
 
   const watchlistSet = useMemo(
     () => new Set(watchlist.map((w) => w.ticker.toUpperCase())),
@@ -436,6 +542,7 @@ export default function App() {
         setErrorMsg(t.watchlistFull);
         return prev;
       }
+      const liveStatus = resolveLiveStatus(item, todayStr);
       return [
         {
           id: item.id || `watch-${tickerKey}-${Date.now()}`,
@@ -444,7 +551,7 @@ export default function App() {
           sector: item.sector,
           date: item.date,
           timing: item.timing,
-          status: item.status,
+          status: liveStatus,
           epsEst: item.epsEst,
           epsAct: item.epsAct,
           revEst: item.revEst,
@@ -457,10 +564,10 @@ export default function App() {
   };
 
   const sectors = useMemo(() => {
-    const pool = [...curated.combined, ...watchlist];
+    const pool = [...curated.combined, ...extraMatchedItems, ...watchlist];
     const set = new Set(pool.map((item) => item.sector).filter(Boolean));
     return ['all', ...Array.from(set)];
-  }, [curated.combined, watchlist]);
+  }, [curated.combined, extraMatchedItems, watchlist]);
 
   const filteredItems = useMemo(() => {
     let baseList = curated.combined;
@@ -469,7 +576,10 @@ export default function App() {
     } else if (statusFilter === 'reported') {
       baseList = curated.reported;
     } else if (statusFilter === 'watchlist') {
-      baseList = watchlist.slice(0, MAX_WATCHLIST);
+      baseList = watchlist.slice(0, MAX_WATCHLIST).map((w) => ({
+        ...w,
+        status: resolveLiveStatus(w, todayStr),
+      }));
     }
 
     return baseList.filter((item) => {
@@ -482,7 +592,16 @@ export default function App() {
         item.sector.toLowerCase().includes(q);
       return matchesSector && matchesQuery;
     });
-  }, [curated, statusFilter, sectorFilter, searchQuery, watchlist]);
+  }, [curated, statusFilter, sectorFilter, searchQuery, watchlist, todayStr]);
+
+  const filteredExtraItems = useMemo(() => {
+    if (statusFilter === 'watchlist') return [];
+    return extraMatchedItems.filter((item) => {
+      const matchesSector = sectorFilter === 'all' || item.sector === sectorFilter;
+      const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+      return matchesSector && matchesStatus;
+    });
+  }, [extraMatchedItems, sectorFilter, statusFilter]);
 
   const handleLiveLookup = async (e) => {
     e.preventDefault();
@@ -497,7 +616,7 @@ export default function App() {
 
     setIsSearching(true);
     try {
-      const prompt = `Provide quarterly earnings schedule and consensus/reported figures for S&P 500 stock "${rawQuery}".
+      const prompt = `Provide quarterly earnings schedule and consensus/reported figures for S&P 500 stock "${rawQuery}" relative to current date ${todayStr}.
 Return ONLY a valid JSON object (no markdown fences) with these exact keys:
 {
   "ticker": "UPPERCASE TICKER",
@@ -520,14 +639,17 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
+      const parsedDate = parsed.date || todayStr;
+      const liveStatus = resolveLiveStatus({ date: parsedDate, status: parsed.status }, todayStr);
+
       const newRecord = {
-        id: `${parsed.ticker || rawQuery.toUpperCase()}-${parsed.date || Date.now()}`,
+        id: `${parsed.ticker || rawQuery.toUpperCase()}-${parsedDate}-${Date.now()}`,
         ticker: (parsed.ticker || rawQuery).toUpperCase(),
         company: parsed.company || rawQuery.toUpperCase(),
         sector: parsed.sector || 'Information Technology',
-        date: parsed.date || '2026-12-01',
+        date: parsedDate,
         timing: parsed.timing === 'BMO' ? 'BMO' : 'AMC',
-        status: parsed.status === 'reported' ? 'reported' : 'upcoming',
+        status: liveStatus,
         epsEst: parsed.epsEst || '-',
         epsAct: parsed.epsAct || '-',
         revEst: parsed.revEst || '-',
@@ -547,7 +669,11 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
   };
 
   const handleOpenSummary = async (item) => {
-    setSelectedItem(item);
+    const liveItem = {
+      ...item,
+      status: resolveLiveStatus(item, todayStr),
+    };
+    setSelectedItem(liveItem);
     setSummaryText('');
     setSummaryError('');
 
@@ -567,15 +693,15 @@ Return ONLY a valid JSON object (no markdown fences) with these exact keys:
       };
       const targetLang = langNames[lang] || 'Korean (한국어)';
 
-      const metricsContext = `Company: ${item.company} (${item.ticker}), GICS Sector: ${item.sector}, Earnings Date: ${item.date} (${item.timing}), Status: ${item.status}, EPS Est: ${item.epsEst}, EPS Act: ${item.epsAct}, Revenue Est: ${item.revEst}, Revenue Act: ${item.revAct}, Earnings Surprise: ${item.surprise}.`;
+      const metricsContext = `Company: ${liveItem.company} (${liveItem.ticker}), GICS Sector: ${liveItem.sector}, Earnings Date: ${liveItem.date} (${liveItem.timing}), Reference Date: ${todayStr}, Status: ${liveItem.status}, EPS Est: ${liveItem.epsEst}, EPS Act: ${liveItem.epsAct}, Revenue Est: ${liveItem.revEst}, Revenue Act: ${liveItem.revAct}, Earnings Surprise: ${liveItem.surprise}.`;
 
       const prompt =
-        item.status === 'reported'
+        liveItem.status === 'reported'
           ? `You are a senior Wall Street equity research analyst. Analyze the earnings release and earnings call takeaways for the following company using both the exact figures provided below and your institutional knowledge of the company's business segments, margin structure, and management strategy:
 ${metricsContext}
 
 Write a detailed, well-structured earnings call analysis strictly in ${targetLang} covering these 5 sections with specific bullet points:
-1. [실적 핵심 수치 및 서프라이즈 해석] (Analyze the reported EPS ${item.epsAct} vs Est ${item.epsEst}, Revenue ${item.revAct} vs Est ${item.revEst}, and surprise ${item.surprise})
+1. [실적 핵심 수치 및 서프라이즈 해석] (Analyze the reported EPS ${liveItem.epsAct} vs Est ${liveItem.epsEst}, Revenue ${liveItem.revAct} vs Est ${liveItem.revEst}, and surprise ${liveItem.surprise})
 2. [핵심 사업부별 매출 동인 및 수요 흐름] (Break down key operating segments, pricing vs volume dynamics, and end-market demand)
 3. [경영진 어닝콜 핵심 전략 및 마진 포인트] (Operating margin drivers, cost discipline, CapEx / AI / R&D capital allocation priorities)
 4. [차기 분기 가이던스 및 중장기 체크포인트] (Key forward-looking indicators, backlog/order trends, and guidance sensitivity)
@@ -584,7 +710,7 @@ Write a detailed, well-structured earnings call analysis strictly in ${targetLan
 ${metricsContext}
 
 Write a detailed, well-structured earnings preview strictly in ${targetLang} covering these 5 sections with specific bullet points:
-1. [컨센서스 기대치 및 실적 눈높이 분석] (Evaluate EPS Est ${item.epsEst} and Revenue Est ${item.revEst} relative to seasonal and industry expectations)
+1. [컨센서스 기대치 및 실적 눈높이 분석] (Evaluate EPS Est ${liveItem.epsEst} and Revenue Est ${liveItem.revEst} relative to seasonal and industry expectations)
 2. [핵심 사업부별 관전 포인트] (Which segments and KPIs institutional investors will scrutinize first)
 3. [경영진 어닝콜 주요 주목 발언 예상] (Key strategic themes around margins, pricing power, CapEx, and demand visibility)
 4. [가이던스 상향/하향 시나리오] (What guidance metrics will trigger positive or negative post-earnings stock reaction)
@@ -608,6 +734,101 @@ Write a detailed, well-structured earnings preview strictly in ${targetLang} cov
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
+  const renderCard = (item, keyPrefix) => {
+    const liveStatus = resolveLiveStatus(item, todayStr);
+    const isUpcoming = liveStatus === 'upcoming';
+    const isSaved = watchlistSet.has(item.ticker.toUpperCase());
+
+    return (
+      <article
+        key={keyPrefix}
+        className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-5 transition hover:border-slate-700"
+      >
+        <div>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+              <Calendar className="h-3.5 w-3.5 text-emerald-400" />
+              <span>{item.date}</span>
+              <span>·</span>
+              <span>{item.timing === 'BMO' ? t.timeBMO : t.timeAMC}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {isUpcoming ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-300">
+                  <Clock className="h-3 w-3" />
+                  {t.statusUpcoming}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {t.statusReported}
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={() => toggleWatchlist({ ...item, status: liveStatus })}
+                title={isSaved ? t.inWatchlist : t.addWatchlist}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
+                  isSaved
+                    ? 'bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/40'
+                    : 'bg-slate-800 text-slate-400 hover:text-amber-300'
+                }`}
+              >
+                <Star className={`h-3 w-3 ${isSaved ? 'fill-current' : ''}`} />
+                <span>{isSaved ? t.inWatchlist : t.addWatchlist}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-lg font-bold text-white">{item.ticker}</h2>
+              <span className="truncate text-sm text-slate-300">{item.company}</span>
+            </div>
+            <p className="mt-0.5 text-xs text-slate-400">{item.sector}</p>
+          </div>
+
+          <div className="mb-4 grid grid-cols-2 gap-2 rounded-xl bg-slate-950/80 p-3 text-xs">
+            <div>
+              <span className="text-slate-400">{t.epsEst}</span>
+              <p className="mt-0.5 font-semibold text-slate-100">{item.epsEst}</p>
+            </div>
+            <div>
+              <span className="text-slate-400">{t.epsAct}</span>
+              <p className="mt-0.5 font-semibold text-emerald-300">{item.epsAct}</p>
+            </div>
+            <div>
+              <span className="text-slate-400">{t.revEst}</span>
+              <p className="mt-0.5 font-semibold text-slate-100">{item.revEst}</p>
+            </div>
+            <div>
+              <span className="text-slate-400">{t.revAct}</span>
+              <p className="mt-0.5 font-semibold text-emerald-300">{item.revAct}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 border-t border-slate-800 pt-3">
+          <div className="text-xs">
+            <span className="text-slate-400">{t.surprise}: </span>
+            <span className="font-semibold text-amber-300">{item.surprise}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleOpenSummary({ ...item, status: liveStatus })}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/25"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>{t.aiSummaryBtn}</span>
+          </button>
+        </div>
+      </article>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
@@ -622,7 +843,8 @@ Write a detailed, well-structured earnings preview strictly in ${targetLang} cov
                 {t.countBadge(
                   curated.upcoming.length,
                   curated.reported.length,
-                  watchlist.length
+                  watchlist.length,
+                  todayStr
                 )}
               </span>
             </div>
@@ -766,6 +988,7 @@ Write a detailed, well-structured earnings preview strictly in ${targetLang} cov
               <button
                 type="button"
                 onClick={() => {
+                  setTodayStr(getTodayDateStr());
                   setEarnings(INITIAL_EARNINGS);
                   setStatusFilter('all');
                   setSectorFilter('all');
@@ -781,7 +1004,7 @@ Write a detailed, well-structured earnings preview strictly in ${targetLang} cov
           </div>
         </section>
 
-        {filteredItems.length === 0 ? (
+        {filteredItems.length === 0 && filteredExtraItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-10 text-center">
             <p className="text-base font-medium text-slate-300">
               {statusFilter === 'watchlist' ? t.emptyWatchlist : t.noResults}
@@ -791,100 +1014,28 @@ Write a detailed, well-structured earnings preview strictly in ${targetLang} cov
             )}
           </div>
         ) : (
-          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item, idx) => {
-              const isUpcoming = item.status === 'upcoming';
-              const isSaved = watchlistSet.has(item.ticker.toUpperCase());
-              return (
-                <article
-                  key={`${item.id}-${idx}`}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-5 transition hover:border-slate-700"
-                >
-                  <div>
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
-                        <Calendar className="h-3.5 w-3.5 text-emerald-400" />
-                        <span>{item.date}</span>
-                        <span>·</span>
-                        <span>{item.timing === 'BMO' ? t.timeBMO : t.timeAMC}</span>
-                      </div>
+          <div className="space-y-8">
+            {filteredItems.length > 0 && (
+              <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredItems.map((item, idx) =>
+                  renderCard(item, `core-${item.id}-${idx}`)
+                )}
+              </section>
+            )}
 
-                      <div className="flex items-center gap-1.5">
-                        {isUpcoming ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-300">
-                            <Clock className="h-3 w-3" />
-                            {t.statusUpcoming}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
-                            <CheckCircle2 className="h-3 w-3" />
-                            {t.statusReported}
-                          </span>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => toggleWatchlist(item)}
-                          title={isSaved ? t.inWatchlist : t.addWatchlist}
-                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
-                            isSaved
-                              ? 'bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/40'
-                              : 'bg-slate-800 text-slate-400 hover:text-amber-300'
-                          }`}
-                        >
-                          <Star className={`h-3 w-3 ${isSaved ? 'fill-current' : ''}`} />
-                          <span>{isSaved ? t.inWatchlist : t.addWatchlist}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <div className="flex items-baseline gap-2">
-                        <h2 className="text-lg font-bold text-white">{item.ticker}</h2>
-                        <span className="truncate text-sm text-slate-300">{item.company}</span>
-                      </div>
-                      <p className="mt-0.5 text-xs text-slate-400">{item.sector}</p>
-                    </div>
-
-                    <div className="mb-4 grid grid-cols-2 gap-2 rounded-xl bg-slate-950/80 p-3 text-xs">
-                      <div>
-                        <span className="text-slate-400">{t.epsEst}</span>
-                        <p className="mt-0.5 font-semibold text-slate-100">{item.epsEst}</p>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">{t.epsAct}</span>
-                        <p className="mt-0.5 font-semibold text-emerald-300">{item.epsAct}</p>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">{t.revEst}</span>
-                        <p className="mt-0.5 font-semibold text-slate-100">{item.revEst}</p>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">{t.revAct}</span>
-                        <p className="mt-0.5 font-semibold text-emerald-300">{item.revAct}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 border-t border-slate-800 pt-3">
-                    <div className="text-xs">
-                      <span className="text-slate-400">{t.surprise}: </span>
-                      <span className="font-semibold text-amber-300">{item.surprise}</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenSummary(item)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/25"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      <span>{t.aiSummaryBtn}</span>
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </section>
+            {filteredExtraItems.length > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-sm font-semibold text-emerald-300">
+                  {t.extraResultsTitle} ({filteredExtraItems.length})
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredExtraItems.map((item, idx) =>
+                    renderCard(item, `extra-${item.id}-${idx}`)
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
         )}
 
         <footer className="mt-8 text-center text-xs text-slate-500">{t.disclaimer}</footer>
