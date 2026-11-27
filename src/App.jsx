@@ -321,7 +321,7 @@ async function generateGeminiText(apiKey, prompt) {
     throw new Error('VITE_GEMINI_API_KEY가 비어 있습니다.');
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(
     cleanKey
   )}`;
 
