@@ -48,7 +48,7 @@ const UI_TEXT = {
     regenerate: '다시 심층 분석',
     close: '닫기',
     noResults: '조건에 맞는 실적 발표 일정이 없습니다.',
-    extraResultsTitle: 'S&P 500 전 종목 즉시 검색 결과 (기본 60개 외 · 실시간 갱신 반영)',
+    extraResultsTitle: 'S&P 500 전 종목 즉시 검색 결과 (기본 60개 외 · 자동동기화·기록보존)',
     emptyWatchlist: `관심목록이 비어 있습니다. 카드의 별 아이콘을 눌러 최대 ${MAX_WATCHLIST}개까지 추가해 보세요.`,
     addTickerHint: '상단 검색창에 S&P 500 티커나 기업명을 입력하면 즉시 검색됩니다.',
     statusUpcoming: '발표예정',
@@ -88,7 +88,7 @@ const UI_TEXT = {
     regenerate: 'Re-analyze',
     close: 'Close',
     noResults: 'No earnings events match your current filters.',
-    extraResultsTitle: 'Instant S&P 500 Matches (Outside Core 60 · Live Updates Included)',
+    extraResultsTitle: 'Instant S&P 500 Matches (Outside Core 60 · Auto-Synced)',
     emptyWatchlist: `Your watchlist is empty. Click the star button on any card to save up to ${MAX_WATCHLIST} stocks.`,
     addTickerHint: 'Type any S&P 500 ticker or company name above for instant search.',
     statusUpcoming: 'Upcoming',
@@ -128,7 +128,7 @@ const UI_TEXT = {
     regenerate: '再分析',
     close: '閉じる',
     noResults: '条件に一致する決算発表がありません。',
-    extraResultsTitle: 'S&P 500 即時検索結果（基本60銘柄以外・リアルタイム更新反映）',
+    extraResultsTitle: 'S&P 500 即時検索結果（基本60銘柄以外・自動同期・履歴保持）',
     emptyWatchlist: `ウォッチリストが空です。カードの星マークから最大${MAX_WATCHLIST}件まで追加できます。`,
     addTickerHint: '上の検索バーにS&P 500ティッカーまたは企業名を入力すると即座に表示されます。',
     statusUpcoming: '発表予定',
@@ -168,7 +168,7 @@ const UI_TEXT = {
     regenerate: '重新分析',
     close: '关闭',
     noResults: '没有符合当前筛选条件的财报日程。',
-    extraResultsTitle: '标普500全成分股即时匹配（60只核心之外·含实时更新）',
+    extraResultsTitle: '标普500全成分股即时匹配（60只核心之外·自动同步·保留记录）',
     emptyWatchlist: `自选股为空。点击卡片上的星标最多可添加${MAX_WATCHLIST}只股票。`,
     addTickerHint: '在上方搜索框输入标普500代码或公司名称即可立即搜索。',
     statusUpcoming: '即将发布',
@@ -208,7 +208,7 @@ const UI_TEXT = {
     regenerate: 'Reanalizar',
     close: 'Cerrar',
     noResults: 'No hay eventos que coincidan con los filtros actuales.',
-    extraResultsTitle: 'Coincidencias instantáneas S&P 500 (fuera de las 60 · con actualizaciones)',
+    extraResultsTitle: 'Coincidencias instantáneas S&P 500 (fuera de las 60 · sincronizado)',
     emptyWatchlist: `Tu lista de seguimiento está vacía. Toca la estrella en cualquier tarjeta para guardar hasta ${MAX_WATCHLIST}.`,
     addTickerHint: 'Escribe cualquier ticker o empresa del S&P 500 arriba para buscar al instante.',
     statusUpcoming: 'Próximo',
@@ -453,27 +453,40 @@ export default function App() {
     [curated.combined]
   );
 
-  // 실시간 조회로 추가/갱신된 최신 티커 맵 (검색 시 즉시 반영)
-  const liveUpdatedMap = useMemo(() => {
+  // 실시간 조회·사용자 추가·관심목록 기록을 보존하며 최신 정보 반영
+  const preservedRecordsMap = useMemo(() => {
     const map = new Map();
     const initialSet = new Set(INITIAL_EARNINGS.map((i) => `${i.ticker}_${i.date}`));
+
+    // 1) 관심목록 기록 우선 보존 (지수에서 편출되어도 삭제되지 않음)
+    watchlist.forEach((wItem) => {
+      const upper = (wItem.ticker || '').toUpperCase();
+      if (!upper) return;
+      map.set(upper, { ...wItem, ticker: upper });
+    });
+
+    // 2) 실시간 조회/수동 추가 기록 덮어쓰기
     earnings.forEach((item) => {
-      const key = `${(item.ticker || '').toUpperCase()}_${item.date}`;
+      const upper = (item.ticker || '').toUpperCase();
+      if (!upper) return;
+      const key = `${upper}_${item.date}`;
       if (!initialSet.has(key)) {
-        map.set((item.ticker || '').toUpperCase(), item);
+        const prev = map.get(upper) || {};
+        map.set(upper, { ...prev, ...item, ticker: upper });
       }
     });
-    return map;
-  }, [earnings]);
 
-  // S&P 500 전 종목 + 실시간 변경 종목 즉시 검색 결과
+    return map;
+  }, [earnings, watchlist]);
+
+  // S&P 500 전 종목 + 보존/갱신된 종목 즉시 검색 결과
   const extraMatchedItems = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
 
     const combinedMasterMap = new Map();
 
-    // 1) S&P 500 전체 마스터 디렉터리 적재
+    // 1) 자동 갱신된 S&P 500 전체 마스터 디렉터리 적재
     (SP500_ALL_CONSTITUENTS || []).forEach(([ticker, company, sector], idx) => {
       const upper = (ticker || '').toUpperCase();
       if (!upper) return;
@@ -495,13 +508,13 @@ export default function App() {
       });
     });
 
-    // 2) 실시간 조회로 갱신된 데이터 덮어쓰기
-    liveUpdatedMap.forEach((updatedItem, upper) => {
+    // 2) 보존 중인 관심목록 및 실시간 조회/추가 기록 병합 (편출 종목도 기록 유지)
+    preservedRecordsMap.forEach((rec, upper) => {
       const prev = combinedMasterMap.get(upper) || {};
       combinedMasterMap.set(upper, {
         ...prev,
-        ...updatedItem,
-        id: `live-${upper}`,
+        ...rec,
+        id: rec.id || `preserved-${upper}`,
         ticker: upper,
       });
     });
@@ -522,7 +535,7 @@ export default function App() {
     });
 
     return matches.slice(0, 60);
-  }, [searchQuery, coreTickersSet, liveUpdatedMap, todayStr]);
+  }, [searchQuery, coreTickersSet, preservedRecordsMap, todayStr]);
 
   const watchlistSet = useMemo(
     () => new Set(watchlist.map((w) => w.ticker.toUpperCase())),
