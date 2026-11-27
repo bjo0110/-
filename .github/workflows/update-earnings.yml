@@ -1,0 +1,151 @@
+name: Update Earnings Schedule Feed
+
+on:
+  schedule:
+    - cron: '15 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-earnings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch earnings schedule and update src/earningsFeed.js safely
+        run: |
+          node -e '
+          const fs = require("fs");
+          const path = "src/earningsFeed.js";
+
+          function formatDate(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${y}-${m}-${day}`;
+          }
+
+          function parseTiming(raw) {
+            const s = String(raw || "").toLowerCase();
+            if (s.includes("before") || s.includes("pre") || s.includes("bmo")) return "BMO";
+            return "AMC";
+          }
+
+          function loadSp500Map() {
+            const map = new Map();
+            try {
+              const raw = fs.readFileSync("src/sp500All.js", "utf8");
+              const re = /\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\]/g;
+              let m;
+              while ((m = re.exec(raw)) !== null) {
+                map.set(m[1].toUpperCase(), { company: m[2], sector: m[3] });
+              }
+            } catch (_) {}
+            return map;
+          }
+
+          (async () => {
+            const sp500Map = loadSp500Map();
+            const now = new Date();
+            const todayStr = formatDate(now);
+
+            const dates = [];
+            for (let offset = -21; offset <= 30; offset += 1) {
+              const dt = new Date(now);
+              dt.setDate(dt.getDate() + offset);
+              dates.push(formatDate(dt));
+            }
+
+            const collected = [];
+            for (const dateStr of dates) {
+              try {
+                const url = `https://api.nasdaq.com/api/calendar/earnings?date=${dateStr}`;
+                const res = await fetch(url, {
+                  headers: {
+                    "User-Agent": "Mozilla/5.0",
+                    "Accept": "application/json, text/plain, */*",
+                  },
+                });
+                if (!res.ok) continue;
+                const json = await res.json();
+                const rows = json?.data?.rows;
+                if (!Array.isArray(rows)) continue;
+
+                rows.forEach((r, idx) => {
+                  const ticker = String(r.symbol || "").trim().toUpperCase();
+                  if (!ticker) return;
+                  if (sp500Map.size > 0 && !sp500Map.has(ticker)) return;
+
+                  const spInfo = sp500Map.get(ticker) || {};
+                  const isPast = dateStr < todayStr;
+                  collected.push({
+                    id: `auto-${ticker}-${dateStr}-${idx}`,
+                    ticker,
+                    company: spInfo.company || String(r.name || ticker).trim(),
+                    sector: spInfo.sector || "Information Technology",
+                    date: dateStr,
+                    timing: parseTiming(r.time),
+                    status: isPast ? "reported" : "upcoming",
+                    epsEst: String(r.epsForecast || "-").trim() || "-",
+                    epsAct: isPast ? (String(r.lastYearEPS || r.eps || "-").trim() || "-") : "-",
+                    revEst: "-",
+                    revAct: "-",
+                    surprise: String(r.surprise || "-").trim() || "-",
+                  });
+                });
+              } catch (_) {
+                // continue next date
+              }
+            }
+
+            const upcoming = collected
+              .filter((x) => x.status === "upcoming")
+              .sort((a, b) => a.date.localeCompare(b.date))
+              .slice(0, 30);
+
+            const reported = collected
+              .filter((x) => x.status === "reported")
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .slice(0, 30);
+
+            const merged = [...upcoming, ...reported];
+            if (merged.length < 15) {
+              console.log(`Fetched only ${merged.length} items; keeping existing ${path} intact.`);
+              process.exit(0);
+            }
+
+            const lines = merged
+              .map((item) => `  ${JSON.stringify(item)},`)
+              .join("\n");
+
+            const content = `// Auto-updated earnings schedule feed (${todayStr})\nexport const AUTO_EARNINGS_FEED = [\n${lines}\n];\n`;
+            const prev = fs.existsSync(path) ? fs.readFileSync(path, "utf8") : "";
+            if (prev === content) {
+              console.log("No changes in earnings schedule feed.");
+              process.exit(0);
+            }
+
+            fs.writeFileSync(path, content, "utf8");
+            console.log(`Updated ${path} with ${upcoming.length} upcoming and ${reported.length} reported items.`);
+          })();
+          '
+
+      - name: Commit changes if src/earningsFeed.js changed
+        run: |
+          if git diff --quiet src/earningsFeed.js; then
+            echo "No file diff to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/earningsFeed.js
+          git commit -m "chore: sync earnings schedule feed automatically"
+          git push
