@@ -1,0 +1,128 @@
+name: Update S&P 500 Constituents
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-sp500:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch and update src/sp500All.js safely
+        run: |
+          node -e '
+          const fs = require("fs");
+          const path = "src/sp500All.js";
+
+          function parseCsvLine(line) {
+            const cols = [];
+            let cur = "";
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i += 1) {
+              const ch = line[i];
+              if (ch === "\"") {
+                if (inQuotes && line[i + 1] === "\"") {
+                  cur += "\"";
+                  i += 1;
+                } else {
+                  inQuotes = !inQuotes;
+                }
+              } else if (ch === "," && !inQuotes) {
+                cols.push(cur.trim());
+                cur = "";
+              } else {
+                cur += ch;
+              }
+            }
+            cols.push(cur.trim());
+            return cols;
+          }
+
+          (async () => {
+            const sources = [
+              "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv",
+              "https://raw.githubusercontent.com/fja05680/sp500/master/sp500.csv"
+            ];
+
+            let rows = [];
+            for (const url of sources) {
+              try {
+                const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+                if (!res.ok) continue;
+                const text = await res.text();
+                const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+                if (lines.length < 400) continue;
+
+                const header = parseCsvLine(lines[0]).map((h) => h.toLowerCase());
+                const symIdx = header.findIndex((h) => h === "symbol" || h === "ticker");
+                const nameIdx = header.findIndex((h) => h === "security" || h === "name" || h === "company");
+                const secIdx = header.findIndex((h) => h.includes("sector"));
+
+                if (symIdx === -1 || nameIdx === -1) continue;
+
+                const parsed = [];
+                const seen = new Set();
+                for (let i = 1; i < lines.length; i += 1) {
+                  const cols = parseCsvLine(lines[i]);
+                  const ticker = (cols[symIdx] || "").toUpperCase().replace(/\./g, ".");
+                  const company = (cols[nameIdx] || "").trim();
+                  const sector = (secIdx >= 0 && cols[secIdx]) ? cols[secIdx].trim() : "Information Technology";
+                  if (!ticker || !company || seen.has(ticker)) continue;
+                  seen.add(ticker);
+                  parsed.push([ticker, company, sector]);
+                }
+
+                if (parsed.length >= 450) {
+                  rows = parsed.sort((a, b) => a[0].localeCompare(b[0]));
+                  break;
+                }
+              } catch (_) {
+                // try next source
+              }
+            }
+
+            if (rows.length < 450) {
+              console.log("Fetched fewer than 450 S&P 500 constituents; keeping existing src/sp500All.js intact.");
+              process.exit(0);
+            }
+
+            const body = rows
+              .map(([tk, co, se]) => `  [${JSON.stringify(tk)}, ${JSON.stringify(co)}, ${JSON.stringify(se)}],`)
+              .join("\n");
+
+            const content = `// Auto-updated S&P 500 constituents master directory\n// Preserves user watchlist, live lookups, and existing records on delistings\nexport const SP500_ALL_CONSTITUENTS = [\n${body}\n];\n`;
+
+            const prevContent = fs.existsSync(path) ? fs.readFileSync(path, "utf8") : "";
+            if (prevContent === content) {
+              console.log("No changes in S&P 500 constituents.");
+              process.exit(0);
+            }
+
+            fs.writeFileSync(path, content, "utf8");
+            console.log(`Updated ${path} with ${rows.length} constituents.`);
+          })();
+          '
+
+      - name: Commit changes if src/sp500All.js changed
+        run: |
+          if git diff --quiet src/sp500All.js; then
+            echo "No file diff to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/sp500All.js
+          git commit -m "chore: sync S&P 500 constituents automatically"
+          git push
