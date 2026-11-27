@@ -216,9 +216,7 @@ const UI_TEXT = {
   },
 };
 
-// 기본 노출: 예정 30개 (빠른 날짜 순) + 발표완료 30개 (최근 날짜 순)
 const INITIAL_EARNINGS = [
-  // ===== UPCOMING (30개) =====
   { id: 'up-01', ticker: 'MRVL', company: 'Marvell Technology, Inc.', sector: 'Information Technology', date: '2026-12-01', timing: 'AMC', status: 'upcoming', epsEst: '$0.48', epsAct: '-', revEst: '$1.51B', revAct: '-', surprise: '-' },
   { id: 'up-02', ticker: 'NTAP', company: 'NetApp, Inc.', sector: 'Information Technology', date: '2026-12-01', timing: 'AMC', status: 'upcoming', epsEst: '$1.78', epsAct: '-', revEst: '$1.66B', revAct: '-', surprise: '-' },
   { id: 'up-03', ticker: 'CRWD', company: 'CrowdStrike Holdings, Inc.', sector: 'Information Technology', date: '2026-12-01', timing: 'AMC', status: 'upcoming', epsEst: '$0.81', epsAct: '-', revEst: '$1.03B', revAct: '-', surprise: '-' },
@@ -250,7 +248,6 @@ const INITIAL_EARNINGS = [
   { id: 'up-29', ticker: 'CTAS', company: 'Cintas Corporation', sector: 'Industrials', date: '2026-12-22', timing: 'BMO', status: 'upcoming', epsEst: '$1.01', epsAct: '-', revEst: '$2.56B', revAct: '-', surprise: '-' },
   { id: 'up-30', ticker: 'JPM', company: 'JPMorgan Chase & Co.', sector: 'Financials', date: '2027-01-14', timing: 'BMO', status: 'upcoming', epsEst: '$4.05', epsAct: '-', revEst: '$41.8B', revAct: '-', surprise: '-' },
 
-  // ===== REPORTED (30개) =====
   { id: 'rep-01', ticker: 'DE', company: 'Deere & Company', sector: 'Industrials', date: '2026-11-24', timing: 'BMO', status: 'reported', epsEst: '$3.90', epsAct: '$4.55', revEst: '$9.27B', revAct: '$11.1B', surprise: '+16.7%' },
   { id: 'rep-02', ticker: 'ADSK', company: 'Autodesk, Inc.', sector: 'Information Technology', date: '2026-11-24', timing: 'AMC', status: 'reported', epsEst: '$2.12', epsAct: '$2.17', revEst: '$1.56B', revAct: '$1.57B', surprise: '+2.4%' },
   { id: 'rep-03', ticker: 'WDAY', company: 'Workday, Inc.', sector: 'Information Technology', date: '2026-11-24', timing: 'AMC', status: 'reported', epsEst: '$1.76', epsAct: '$1.89', revEst: '$2.13B', revAct: '$2.16B', surprise: '+7.4%' },
@@ -313,9 +310,6 @@ function curateEarningsList(items) {
   };
 }
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// 무료 등급(Free Tier) 호환 + 503 일시 혼잡 시 자동 재시도 및 예비 무료 모델 자동 폴백
 async function generateGeminiText(apiKey, prompt) {
   const cleanKey = (apiKey || '').trim();
   if (!cleanKey) {
@@ -324,17 +318,16 @@ async function generateGeminiText(apiKey, prompt) {
 
   const candidateModels = [
     'gemini-3.8-flash',
-    'gemini-3.8-flash',
     'gemini-3.5-flash-lite',
+    'gemini-2.5-flash',
   ];
 
   let lastError = null;
 
   for (let i = 0; i < candidateModels.length; i += 1) {
     const model = candidateModels[i];
-    if (i > 0) {
-      await sleep(1200);
-    }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(
       cleanKey
@@ -344,6 +337,7 @@ async function generateGeminiText(apiKey, prompt) {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: {
@@ -353,14 +347,13 @@ async function generateGeminiText(apiKey, prompt) {
         }),
       });
 
+      clearTimeout(timeoutId);
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const apiMessage = data?.error?.message || `HTTP ${res.status}`;
-        lastError = new Error(`Gemini API 오류 (${res.status}): ${apiMessage}`);
-        if (res.status === 503 || res.status === 429 || res.status === 404) {
-          continue;
-        }
-        throw lastError;
+        lastError = new Error(`Gemini API 오류 (${model} / ${res.status}): ${apiMessage}`);
+        continue;
       }
 
       const parts = data?.candidates?.[0]?.content?.parts || [];
@@ -370,12 +363,17 @@ async function generateGeminiText(apiKey, prompt) {
         .trim();
 
       if (!text) {
-        lastError = new Error('Gemini API 응답 본문이 비어 있습니다.');
+        lastError = new Error(`${model} 응답 본문이 비어 있습니다.`);
         continue;
       }
       return text;
     } catch (err) {
-      lastError = err;
+      clearTimeout(timeoutId);
+      if (err?.name === 'AbortError') {
+        lastError = new Error(`${model} 응답 시간 초과 (10초)`);
+      } else {
+        lastError = err;
+      }
     }
   }
 
@@ -385,7 +383,7 @@ async function generateGeminiText(apiKey, prompt) {
 export default function App() {
   const [lang, setLang] = useState('ko');
   const [earnings, setEarnings] = useState(INITIAL_EARNINGS);
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'upcoming' | 'reported' | 'watchlist'
+  const [statusFilter, setStatusFilter] = useState('all');
   const [sectorFilter, setSectorFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
