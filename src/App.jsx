@@ -1,907 +1,836 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import {
   Calendar,
   Search,
-  RefreshCw,
-  Star,
-  Languages,
-  MessageSquareText,
-  X,
-  Copy,
-  Check,
-  TrendingUp,
-  Clock,
-  Building2,
   Sparkles,
-  ArrowUpDown
+  RefreshCw,
+  CheckCircle2,
+  Clock,
+  Globe,
+  TrendingUp,
+  AlertCircle,
+  X,
+  Plus,
 } from 'lucide-react';
-
-const LANGUAGES = [
-  { code: 'ko', label: '한국어', promptLang: 'Korean' },
-  { code: 'en', label: 'English', promptLang: 'English' },
-  { code: 'ja', label: '日本語', promptLang: 'Japanese' },
-  { code: 'zh', label: '中文', promptLang: 'Simplified Chinese' },
-  { code: 'es', label: 'Español', promptLang: 'Spanish' }
-];
 
 const UI_TEXT = {
   ko: {
     title: 'S&P 500 실시간 실적발표 허브',
     subtitle: '실적 일정 조회 · GICS 섹터 필터 · 다국어 AI 어닝콜 요약',
-    appLang: '앱 언어',
-    summaryLang: '요약 언어',
     searchPlaceholder: '티커 또는 기업명 검색 (예: AAPL, NVDA, JPM)',
-    lookupBtn: '실시간 조회',
-    syncBtn: '최신화',
+    searchBtn: '실시간 조회',
+    searching: '조회 중...',
+    all: '전체',
+    upcoming: '예정 (빠른 순 최대 30개)',
+    reported: '발표완료 (최근 순 최대 30개)',
     allSectors: '전체 섹터',
-    filterAll: '전체',
-    filterUpcoming: '예정',
-    filterReported: '발표완료',
-    filterWatchlist: '관심종목',
-    viewTimeline: '캘린더 타임라인',
-    viewScreener: '스크리너 테이블',
-    bmo: '장전 (BMO)',
-    amc: '장후 (AMC)',
-    upcoming: '예정',
-    reported: '발표완료',
+    refreshAll: '일정 새로고침',
     epsEst: 'EPS 예상',
     epsAct: 'EPS 실제',
     revEst: '매출 예상',
-    expMove: '예상 변동폭',
-    summaryBtn: '어닝콜 요약',
-    detailBtn: '상세 보기',
-    modalTitle: 'AI 어닝콜 핵심 요약',
-    regenerate: '다시 생성',
-    copySummary: '요약 복사',
-    copied: '복사됨',
-    generating: '최신 실적 및 어닝콜 내용을 분석 중입니다...',
-    noResults: '조건에 맞는 실적 일정이 없습니다.',
-    apiMissing: 'VITE_GEMINI_API_KEY가 설정되지 않아 기본 데모 요약을 표시합니다.',
-    colCompany: '기업',
-    colDate: '발표일',
-    colSession: '시간대',
-    colEpsEst: 'EPS 예상',
-    colEpsAct: 'EPS 실제',
-    colSurprise: '서프라이즈',
-    colMove: '예상 변동폭',
-    colAction: '요약'
+    revAct: '매출 실제',
+    surprise: '어닝 서프라이즈',
+    aiSummaryBtn: 'AI 어닝콜 요약',
+    aiSummaryTitle: 'AI 어닝콜 핵심 요약',
+    aiLoading: '실적 발표 및 컨퍼런스콜 내용을 분석 중입니다...',
+    noApiKey:
+      'VITE_GEMINI_API_KEY가 설정되지 않아 기본 데모 요약을 표시합니다. Vercel 환경변수에 키를 추가하면 실시간 AI 요약과 검색이 활성화됩니다.',
+    close: '닫기',
+    noResults: '조건에 맞는 실적 발표 일정이 없습니다.',
+    addTickerHint: '상단 검색창에서 원하는 S&P 500 종목을 실시간으로 추가해 보세요.',
+    statusUpcoming: '발표예정',
+    statusReported: '발표완료',
+    timeBMO: '장 시작 전 (BMO)',
+    timeAMC: '장 마감 후 (AMC)',
+    countBadge: (upCount, repCount) => `예정 ${upCount}개 · 발표완료 ${repCount}개`,
+    disclaimer:
+      '※ 본 앱의 일정 및 AI 요약은 참고용이며, 최종 공시 및 투자 판단의 책임은 이용자 본인에게 있습니다.',
   },
   en: {
     title: 'S&P 500 Earnings Hub',
-    subtitle: 'Earnings Schedule · GICS Filters · Multilingual AI Call Summaries',
-    appLang: 'App UI',
-    summaryLang: 'Call Summary',
+    subtitle: 'Earnings Schedule · Sector Filter · Multilingual AI Call Summaries',
     searchPlaceholder: 'Search ticker or company (e.g. AAPL, NVDA, JPM)',
-    lookupBtn: 'Live Lookup',
-    syncBtn: 'Sync',
+    searchBtn: 'Live Lookup',
+    searching: 'Looking up...',
+    all: 'All',
+    upcoming: 'Upcoming (Earliest 30)',
+    reported: 'Reported (Latest 30)',
     allSectors: 'All Sectors',
-    filterAll: 'All',
-    filterUpcoming: 'Upcoming',
-    filterReported: 'Reported',
-    filterWatchlist: 'Watchlist',
-    viewTimeline: 'Timeline',
-    viewScreener: 'Screener',
-    bmo: 'BMO (Pre-Market)',
-    amc: 'AMC (After-Hours)',
-    upcoming: 'Upcoming',
-    reported: 'Reported',
+    refreshAll: 'Refresh Schedule',
     epsEst: 'EPS Est.',
     epsAct: 'EPS Act.',
     revEst: 'Rev. Est.',
-    expMove: 'Exp. Move',
-    summaryBtn: 'Call Summary',
-    detailBtn: 'Details',
-    modalTitle: 'AI Earnings Call Summary',
-    regenerate: 'Regenerate',
-    copySummary: 'Copy',
-    copied: 'Copied',
-    generating: 'Analyzing latest earnings and call highlights...',
-    noResults: 'No matching earnings events found.',
-    apiMissing: 'VITE_GEMINI_API_KEY is not set; showing sample structured summary.',
-    colCompany: 'Company',
-    colDate: 'Date',
-    colSession: 'Session',
-    colEpsEst: 'EPS Est.',
-    colEpsAct: 'EPS Act.',
-    colSurprise: 'Surprise',
-    colMove: 'Exp. Move',
-    colAction: 'Summary'
+    revAct: 'Rev. Act.',
+    surprise: 'Surprise',
+    aiSummaryBtn: 'AI Call Summary',
+    aiSummaryTitle: 'AI Earnings Call Summary',
+    aiLoading: 'Analyzing earnings release and call highlights...',
+    noApiKey:
+      'VITE_GEMINI_API_KEY is not set; showing sample summaries. Add VITE_GEMINI_API_KEY in Vercel Environment Variables to enable live AI summaries and lookup.',
+    close: 'Close',
+    noResults: 'No earnings events match your current filters.',
+    addTickerHint: 'Use the search bar above to look up any S&P 500 ticker live.',
+    statusUpcoming: 'Upcoming',
+    statusReported: 'Reported',
+    timeBMO: 'Before Market Open',
+    timeAMC: 'After Market Close',
+    countBadge: (upCount, repCount) => `Upcoming ${upCount} · Reported ${repCount}`,
+    disclaimer:
+      '※ Earnings dates and AI summaries are for informational purposes only. Always verify official filings.',
   },
   ja: {
     title: 'S&P 500 決算スケジュールハブ',
-    subtitle: '決算日程検索 · セクター絞り込み · 多言語AI決算会見要約',
-    appLang: '表示言語',
-    summaryLang: '要約言語',
-    searchPlaceholder: 'ティッカー・企業名で検索（例: AAPL, NVDA, JPM）',
-    lookupBtn: '最新検索',
-    syncBtn: '更新',
+    subtitle: '決算日程検索 · セクター絞り込み · 多言語AI決算要約',
+    searchPlaceholder: 'ティッカーまたは企業名で検索 (例: AAPL, NVDA, JPM)',
+    searchBtn: 'リアルタイム検索',
+    searching: '検索中...',
+    all: 'すべて',
+    upcoming: '予定（早い順 最大30件）',
+    reported: '発表済（最新順 最大30件）',
     allSectors: '全セクター',
-    filterAll: 'すべて',
-    filterUpcoming: '予定',
-    filterReported: '発表済',
-    filterWatchlist: 'ウォッチ',
-    viewTimeline: 'タイムライン',
-    viewScreener: 'スクリーナー',
-    bmo: '寄り前 (BMO)',
-    amc: '引け後 (AMC)',
-    upcoming: '予定',
-    reported: '発表済',
-    epsEst: 'EPS予想',
-    epsAct: 'EPS実績',
-    revEst: '売上予想',
-    expMove: '予想変動幅',
-    summaryBtn: '決算要約',
-    detailBtn: '詳細',
-    modalTitle: 'AI決算会見コア要約',
-    regenerate: '再生成',
-    copySummary: 'コピー',
-    copied: '完了',
-    generating: '最新の決算・会見内容を分析しています...',
-    noResults: '条件に一致する決算予定がありません。',
-    apiMissing: 'VITE_GEMINI_API_KEY未設定のためサンプル要約を表示しています。',
-    colCompany: '企業',
-    colDate: '発表日',
-    colSession: '時間帯',
-    colEpsEst: 'EPS予想',
-    colEpsAct: 'EPS実績',
-    colSurprise: 'サプライズ',
-    colMove: '予想変動幅',
-    colAction: '要約'
+    refreshAll: '日程更新',
+    epsEst: 'EPS 予想',
+    epsAct: 'EPS 実績',
+    revEst: '売上 予想',
+    revAct: '売上 実績',
+    surprise: 'サプライズ',
+    aiSummaryBtn: 'AI 決算要約',
+    aiSummaryTitle: 'AI 決算コール要約',
+    aiLoading: '決算内容とカンファレンスコールを分析中...',
+    noApiKey:
+      'VITE_GEMINI_API_KEY が未設定のためサンプル要約を表示しています。Vercelの環境変数に設定するとリアルタイムAI要約と検索が有効になります。',
+    close: '閉じる',
+    noResults: '条件に一致する決算発表がありません。',
+    addTickerHint: '上の検索バーからS&P 500銘柄をリアルタイム検索できます。',
+    statusUpcoming: '発表予定',
+    statusReported: '発表済',
+    timeBMO: '寄り付き前 (BMO)',
+    timeAMC: '引け後 (AMC)',
+    countBadge: (upCount, repCount) => `予定 ${upCount}件 · 発表済 ${repCount}件`,
+    disclaimer:
+      '※ 決算日程およびAI要約は参考情報です。最終的な投資判断はご自身の責任で行ってください。',
   },
   zh: {
     title: '标普500财报日历中心',
     subtitle: '财报日程查询 · 行业筛选 · 多语言AI财报电话会摘要',
-    appLang: '界面语言',
-    summaryLang: '摘要语言',
-    searchPlaceholder: '搜索代码或公司（如 AAPL, NVDA, JPM）',
-    lookupBtn: '实时查询',
-    syncBtn: '刷新',
+    searchPlaceholder: '搜索代码或公司名称（如 AAPL, NVDA, JPM）',
+    searchBtn: '实时查询',
+    searching: '查询中...',
+    all: '全部',
+    upcoming: '即将发布（最早30条）',
+    reported: '已发布（最新30条）',
     allSectors: '全部行业',
-    filterAll: '全部',
-    filterUpcoming: '即将发布',
-    filterReported: '已发布',
-    filterWatchlist: '自选股',
-    viewTimeline: '时间轴视图',
-    viewScreener: '筛选表格',
-    bmo: '盘前 (BMO)',
-    amc: '盘后 (AMC)',
-    upcoming: '即将发布',
-    reported: '已发布',
-    epsEst: 'EPS预期',
-    epsAct: 'EPS实际',
-    revEst: '营收预期',
-    expMove: '预期波动',
-    summaryBtn: '电话会摘要',
-    detailBtn: '详情',
-    modalTitle: 'AI 财报电话会核心摘要',
-    regenerate: '重新生成',
-    copySummary: '复制摘要',
-    copied: '已复制',
-    generating: '正在分析最新财报与电话会议要点...',
-    noResults: '没有找到匹配的财报日程。',
-    apiMissing: '未配置 VITE_GEMINI_API_KEY，当前显示示例摘要。',
-    colCompany: '公司',
-    colDate: '日期',
-    colSession: '时段',
-    colEpsEst: 'EPS预期',
-    colEpsAct: 'EPS实际',
-    colSurprise: '超预期',
-    colMove: '预期波动',
-    colAction: '摘要'
+    refreshAll: '刷新日程',
+    epsEst: 'EPS 预期',
+    epsAct: 'EPS 实际',
+    revEst: '营收 预期',
+    revAct: '营收 实际',
+    surprise: '业绩超预期',
+    aiSummaryBtn: 'AI 财报摘要',
+    aiSummaryTitle: 'AI 财报电话会摘要',
+    aiLoading: '正在分析财报与电话会议要点...',
+    noApiKey:
+      '未配置 VITE_GEMINI_API_KEY，当前显示示例摘要。请在 Vercel 环境变量中添加密钥以启用实时 AI 摘要与查询。',
+    close: '关闭',
+    noResults: '没有符合当前筛选条件的财报日程。',
+    addTickerHint: '可在上方搜索框实时查询标普500成分股。',
+    statusUpcoming: '即将发布',
+    statusReported: '已发布',
+    timeBMO: '盘前 (BMO)',
+    timeAMC: '盘后 (AMC)',
+    countBadge: (upCount, repCount) => `即将发布 ${upCount} · 已发布 ${repCount}`,
+    disclaimer:
+      '※ 财报日期与 AI 摘要仅供参考，请以官方披露为准并审慎决策。',
   },
   es: {
     title: 'Centro de Resultados S&P 500',
-    subtitle: 'Calendario de Resultados · Sectores GICS · Resúmenes IA Multilingües',
-    appLang: 'Idioma App',
-    summaryLang: 'Idioma Resumen',
+    subtitle: 'Calendario de Ganancias · Filtros por Sector · Resúmenes IA Multilingües',
     searchPlaceholder: 'Buscar ticker o empresa (ej. AAPL, NVDA, JPM)',
-    lookupBtn: 'Buscar',
-    syncBtn: 'Sincronizar',
-    allSectors: 'Todos los Sectores',
-    filterAll: 'Todos',
-    filterUpcoming: 'Próximos',
-    filterReported: 'Reportados',
-    filterWatchlist: 'Favoritos',
-    viewTimeline: 'Cronograma',
-    viewScreener: 'Tabla',
-    bmo: 'Pre-mercado (BMO)',
-    amc: 'Post-mercado (AMC)',
-    upcoming: 'Próximo',
-    reported: 'Reportado',
+    searchBtn: 'Consulta en vivo',
+    searching: 'Consultando...',
+    all: 'Todos',
+    upcoming: 'Próximos (Primeros 30)',
+    reported: 'Reportados (Últimos 30)',
+    allSectors: 'Todos los sectores',
+    refreshAll: 'Actualizar agenda',
     epsEst: 'BPA Est.',
     epsAct: 'BPA Real',
-    revEst: 'Ingresos Est.',
-    expMove: 'Mov. Est.',
-    summaryBtn: 'Resumen Call',
-    detailBtn: 'Detalles',
-    modalTitle: 'Resumen IA de Conferencia de Resultados',
-    regenerate: 'Regenerar',
-    copySummary: 'Copiar',
-    copied: 'Copiado',
-    generating: 'Analizando resultados y puntos clave de la conferencia...',
-    noResults: 'No se encontraron eventos de resultados.',
-    apiMissing: 'Falta VITE_GEMINI_API_KEY; mostrando resumen de ejemplo.',
-    colCompany: 'Empresa',
-    colDate: 'Fecha',
-    colSession: 'Horario',
-    colEpsEst: 'BPA Est.',
-    colEpsAct: 'BPA Real',
-    colSurprise: 'Sorpresa',
-    colMove: 'Mov. Est.',
-    colAction: 'Resumen'
-  }
+    revEst: 'Ing. Est.',
+    revAct: 'Ing. Real',
+    surprise: 'Sorpresa',
+    aiSummaryBtn: 'Resumen IA',
+    aiSummaryTitle: 'Resumen IA de Resultados',
+    aiLoading: 'Analizando el reporte de ganancias y la llamada...',
+    noApiKey:
+      'VITE_GEMINI_API_KEY no está configurada; se muestran resúmenes de ejemplo. Añade la clave en Vercel para activar el análisis en vivo.',
+    close: 'Cerrar',
+    noResults: 'No hay eventos que coincidan con los filtros actuales.',
+    addTickerHint: 'Usa la barra superior para consultar cualquier empresa del S&P 500.',
+    statusUpcoming: 'Próximo',
+    statusReported: 'Reportado',
+    timeBMO: 'Antes de apertura',
+    timeAMC: 'Tras el cierre',
+    countBadge: (upCount, repCount) => `Próximos ${upCount} · Reportados ${repCount}`,
+    disclaimer:
+      '※ Las fechas y resúmenes generados por IA son informativos. Verifique siempre los comunicados oficiales.',
+  },
 };
 
 const INITIAL_EARNINGS = [
   {
-    id: 'NVDA-2026-11',
+    id: 'nvda-2026-11',
     ticker: 'NVDA',
     company: 'NVIDIA Corporation',
     sector: 'Information Technology',
     date: '2026-11-18',
-    session: 'AMC',
+    timing: 'AMC',
     status: 'reported',
     epsEst: '$0.75',
     epsAct: '$0.81',
-    surprise: '+8.0%',
     revEst: '$33.1B',
-    expMove: '±7.4%'
+    revAct: '$35.1B',
+    surprise: '+7.7%',
+    demoSummary:
+      '• 데이터센터 및 Blackwell 아키텍처 수요가 전 분기 대비 강하게 확대되었습니다.\n• 클라우드 사업자(CSP)의 AI 인프라 CapEx 집행이 실적 성장을 견인했습니다.\n• 공급망 물량 확대와 차세대 랙 시스템 출하가 핵심 모멘텀으로 제시되었습니다.\n• 경영진은 다음 분기에도 높은 매출 성장률과 견조한 총마진 유지를 가이던스로 제시했습니다.',
   },
   {
-    id: 'CRM-2026-12',
+    id: 'crm-2026-12',
     ticker: 'CRM',
     company: 'Salesforce, Inc.',
     sector: 'Information Technology',
     date: '2026-12-03',
-    session: 'AMC',
+    timing: 'AMC',
     status: 'upcoming',
     epsEst: '$2.44',
     epsAct: '-',
-    surprise: '-',
     revEst: '$9.46B',
-    expMove: '±6.2%'
+    revAct: '-',
+    surprise: '-',
+    demoSummary:
+      '• Agentforce 등 AI 에이전트 도입 속도와 유료 전환율이 핵심 관전 포인트입니다.\n• Data Cloud 연간반복매출(ARR) 성장률과 기업용 소프트웨어 IT 예산 회복 여부가 중요합니다.\n• 영업마진 개선 흐름과 잔여이행의무(cRPO) 가이던스 상향 여부가 주목됩니다.',
   },
   {
-    id: 'COST-2026-12',
+    id: 'cost-2026-12',
     ticker: 'COST',
     company: 'Costco Wholesale Corp.',
     sector: 'Consumer Staples',
     date: '2026-12-10',
-    session: 'AMC',
+    timing: 'AMC',
     status: 'upcoming',
     epsEst: '$3.82',
     epsAct: '-',
-    surprise: '-',
     revEst: '$62.1B',
-    expMove: '±3.8%'
+    revAct: '-',
+    surprise: '-',
+    demoSummary:
+      '• 미국 및 해외 동일점포매출(SSS) 성장률과 전자상거래 매출 증가세가 핵심 지표입니다.\n• 멤버십 갱신률과 회원권 요금 조정 효과가 수익성에 미치는 영향이 중요합니다.\n• 식료품·생필품 가격 경쟁력과 자체브랜드(Kirkland Signature) 비중 확대가 관건입니다.',
   },
   {
-    id: 'JPM-2027-01',
-    ticker: 'JPM',
-    company: 'JPMorgan Chase & Co.',
-    sector: 'Financials',
-    date: '2027-01-15',
-    session: 'BMO',
+    id: 'avgo-2026-12',
+    ticker: 'AVGO',
+    company: 'Broadcom Inc.',
+    sector: 'Information Technology',
+    date: '2026-12-10',
+    timing: 'AMC',
     status: 'upcoming',
-    epsEst: '$4.12',
+    epsEst: '$1.39',
     epsAct: '-',
+    revEst: '$14.0B',
+    revAct: '-',
     surprise: '-',
-    revEst: '$41.8B',
-    expMove: '±3.4%'
+    demoSummary:
+      '• 커스텀 AI 가속기(ASIC) 및 네트워킹 칩 매출 성장세가 반도체 부문을 이끌고 있습니다.\n• VMware 소프트웨어 통합 이후 라이선스·구독 전환과 마진 개선 속도가 핵심입니다.\n• 하이퍼스케일러 고객사향 AI 수주 잔고와 분기 가이던스가 주요 체크포인트입니다.',
   },
   {
-    id: 'UNH-2027-01',
-    ticker: 'UNH',
-    company: 'UnitedHealth Group Inc.',
-    sector: 'Health Care',
-    date: '2027-01-16',
-    session: 'BMO',
+    id: 'adbe-2026-12',
+    ticker: 'ADBE',
+    company: 'Adobe Inc.',
+    sector: 'Information Technology',
+    date: '2026-12-11',
+    timing: 'AMC',
     status: 'upcoming',
-    epsEst: '$7.85',
+    epsEst: '$4.67',
     epsAct: '-',
+    revEst: '$5.60B',
+    revAct: '-',
     surprise: '-',
-    revEst: '$108.4B',
-    expMove: '±4.1%'
-  }
+    demoSummary:
+      '• Firefly 기반 생성형 AI 기능의 크레딧 소비 및 순신규 ARR 기여도가 핵심입니다.\n• Digital Media 및 Digital Experience 부문의 구독 성장세와 가격 정책 효과가 주목됩니다.\n• AI 기능 수익화 속도와 차기 회계연도 매출·EPS 가이던스가 시장 반응을 좌우할 전망입니다.',
+  },
+  {
+    id: 'mu-2026-12',
+    ticker: 'MU',
+    company: 'Micron Technology, Inc.',
+    sector: 'Information Technology',
+    date: '2026-12-17',
+    timing: 'AMC',
+    status: 'upcoming',
+    epsEst: '$1.75',
+    epsAct: '-',
+    revEst: '$8.70B',
+    revAct: '-',
+    surprise: '-',
+    demoSummary:
+      '• HBM3E 공급 확대 및 주요 AI 고객사 인증 진행 상황이 실적 개선의 핵심입니다.\n• DRAM 및 NAND 평균판매가격(ASP) 상승세와 비트 출하량 증가율이 중요합니다.\n• 데이터센터 메모리 수요 강도와 설비투자(CapEx) 계획이 주요 관전 포인트입니다.',
+  },
+  {
+    id: 'aapl-2026-10',
+    ticker: 'AAPL',
+    company: 'Apple Inc.',
+    sector: 'Information Technology',
+    date: '2026-10-29',
+    timing: 'AMC',
+    status: 'reported',
+    epsEst: '$1.60',
+    epsAct: '$1.64',
+    revEst: '$94.5B',
+    revAct: '$94.9B',
+    surprise: '+2.5%',
+    demoSummary:
+      '• 서비스 부문 매출이 사상 최고 수준 흐름을 이어가며 전체 마진을 지지했습니다.\n• Apple Intelligence 지원 기기 교체 수요와 신제품 초기 반응이 주요 화두였습니다.\n• 중국 시장 경쟁 환경과 연말 성수기 분기 매출 가이던스가 제시되었습니다.',
+  },
+  {
+    id: 'msft-2026-10',
+    ticker: 'MSFT',
+    company: 'Microsoft Corporation',
+    sector: 'Information Technology',
+    date: '2026-10-28',
+    timing: 'AMC',
+    status: 'reported',
+    epsEst: '$3.10',
+    epsAct: '$3.30',
+    revEst: '$64.5B',
+    revAct: '$65.6B',
+    surprise: '+6.5%',
+    demoSummary:
+      '• Azure 및 기타 클라우드 서비스 성장률과 그중 AI 서비스 기여도가 핵심으로 다뤄졌습니다.\n• M365 Copilot 기업 도입 확산과 상업용 예약(Commercial Bookings) 성장세가 확인되었습니다.\n• AI 데이터센터 확장을 위한 자본적지출(CapEx) 증가와 비용 통제 기조가 강조되었습니다.',
+  },
+  {
+    id: 'googl-2026-10',
+    ticker: 'GOOGL',
+    company: 'Alphabet Inc.',
+    sector: 'Communication Services',
+    date: '2026-10-29',
+    timing: 'AMC',
+    status: 'reported',
+    epsEst: '$1.85',
+    epsAct: '$2.12',
+    revEst: '$86.3B',
+    revAct: '$88.3B',
+    surprise: '+14.6%',
+    demoSummary:
+      '• Google Cloud 매출 성장 가속과 영업이익률 개선이 실적 호조를 뒷받침했습니다.\n• 검색 광고 및 YouTube 광고 수요가 견조하게 유지되며 현금흐름을 뒷받침했습니다.\n• AI 오버뷰·제미나이 통합에 따른 검색 경험 고도화와 인프라 투자 계획이 공유되었습니다.',
+  },
+  {
+    id: 'amzn-2026-10',
+    ticker: 'AMZN',
+    company: 'Amazon.com, Inc.',
+    sector: 'Consumer Discretionary',
+    date: '2026-10-31',
+    timing: 'AMC',
+    status: 'reported',
+    epsEst: '$1.14',
+    epsAct: '$1.43',
+    revEst: '$157.2B',
+    revAct: '$158.9B',
+    surprise: '+25.4%',
+    demoSummary:
+      '• AWS 매출 성장률 반등과 북미 리테일 물류 효율화(지역화·자동화)가 영업이익을 끌어올렸습니다.\n• 광고 사업 부문의 높은 성장세와 프라임 배송 속도 개선이 고객 충성도를 높였습니다.\n• AI 인프라 수요 증가에 따른 CapEx 집행과 4분기 성수기 전망이 제시되었습니다.',
+  },
 ];
 
-function buildFallbackSummary(item, langCode) {
-  const langName = LANGUAGES.find((l) => l.code === langCode)?.label || '한국어';
-  return [
-    `[${item.ticker} - ${item.company}] (${langName})`,
-    `1. 핵심 요약 3줄: ${item.company}의 발표 일정(${item.date}, ${item.session})과 EPS 컨센서스(${item.epsEst})를 기준으로 주요 사업 성장률과 마진 방어력이 핵심 포인트입니다.`,
-    `2. 실적 및 부문 하이라이트: 매출 예상치는 ${item.revEst} 수준이며, 핵심 사업 부문의 수요 지속 여부와 비용 효율화가 주목됩니다.`,
-    `3. 향후 가이던스: 다음 분기 매출·마진 전망 및 자본지출(CapEx) 계획 업데이트가 주가 방향성을 좌우할 전망입니다.`,
-    `4. 경영진 톤 & Q&A: 애널리스트들은 수요 지속성, 가격 결정력, 현금흐름 배분 우선순위에 집중 질문할 가능성이 높습니다.`
-  ].join('\n\n');
+const LIMIT_PER_STATUS = 30;
+
+function curateEarningsList(items) {
+  const dedupedMap = new Map();
+  items.forEach((item) => {
+    const key = `${item.ticker.toUpperCase()}_${item.date}_${item.status}`;
+    dedupedMap.set(key, {
+      ...item,
+      ticker: item.ticker.toUpperCase(),
+    });
+  });
+
+  const allUnique = Array.from(dedupedMap.values());
+
+  // 예정: 발표일이 가장 빠른 순(오름차순)으로 최대 30개
+  const upcomingSorted = allUnique
+    .filter((item) => item.status === 'upcoming')
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, LIMIT_PER_STATUS);
+
+  // 발표완료: 발표일이 가장 최근 순(내림차순)으로 최대 30개
+  const reportedSorted = allUnique
+    .filter((item) => item.status === 'reported')
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, LIMIT_PER_STATUS);
+
+  return {
+    upcoming: upcomingSorted,
+    reported: reportedSorted,
+    combined: [...upcomingSorted, ...reportedSorted],
+  };
 }
 
 export default function App() {
-  const [appLang, setAppLang] = useState('ko');
-  const [summaryLang, setSummaryLang] = useState('ko');
-  const [items, setItems] = useState(INITIAL_EARNINGS);
+  const [lang, setLang] = useState('ko');
+  const [earnings, setEarnings] = useState(INITIAL_EARNINGS);
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'upcoming' | 'reported'
+  const [sectorFilter, setSectorFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSector, setSelectedSector] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('timeline');
-  const [sortAsc, setSortAsc] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const [watchlist, setWatchlist] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sp500_watchlist_v1');
-      return saved ? JSON.parse(saved) : ['NVDA', 'JPM'];
-    } catch {
-      return ['NVDA', 'JPM'];
-    }
-  });
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [summaryText, setSummaryText] = useState('');
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
-  const [summaryCache, setSummaryCache] = useState({});
-  const [activeModalItem, setActiveModalItem] = useState(null);
-  const [loadingSummary, setLoadingSummary] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const t = UI_TEXT[lang] || UI_TEXT.ko;
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-  const t = UI_TEXT[appLang] || UI_TEXT.ko;
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sp500_watchlist_v1', JSON.stringify(watchlist));
-    } catch {
-      // ignore storage quota errors
-    }
-  }, [watchlist]);
+  const curated = useMemo(() => curateEarningsList(earnings), [earnings]);
 
   const sectors = useMemo(() => {
-    const set = new Set(items.map((i) => i.sector));
-    return ['ALL', ...Array.from(set)];
-  }, [items]);
+    const set = new Set(curated.combined.map((item) => item.sector).filter(Boolean));
+    return ['all', ...Array.from(set)];
+  }, [curated.combined]);
 
   const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return items
-      .filter((item) => {
-        if (selectedSector !== 'ALL' && item.sector !== selectedSector) return false;
-        if (statusFilter === 'upcoming' && item.status !== 'upcoming') return false;
-        if (statusFilter === 'reported' && item.status !== 'reported') return false;
-        if (statusFilter === 'watchlist' && !watchlist.includes(item.ticker)) return false;
-        if (!q) return true;
-        return (
-          item.ticker.toLowerCase().includes(q) ||
-          item.company.toLowerCase().includes(q) ||
-          item.sector.toLowerCase().includes(q)
-        );
-      })
-      .sort((a, b) => (sortAsc ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)));
-  }, [items, searchQuery, selectedSector, statusFilter, watchlist, sortAsc]);
-
-  const groupedByDate = useMemo(() => {
-    const map = new Map();
-    for (const item of filteredItems) {
-      if (!map.has(item.date)) map.set(item.date, []);
-      map.get(item.date).push(item);
-    }
-    return Array.from(map.entries());
-  }, [filteredItems]);
-
-  const toggleWatchlist = (ticker) => {
-    setWatchlist((prev) =>
-      prev.includes(ticker) ? prev.filter((x) => x !== ticker) : [...prev, ticker]
-    );
-  };
-
-  const generateEarningsSummary = async (item, targetLang, forceRefresh = false) => {
-    const cacheKey = `${item.ticker}__${targetLang}`;
-    if (!forceRefresh && summaryCache[cacheKey]) {
-      return summaryCache[cacheKey];
+    let baseList = curated.combined;
+    if (statusFilter === 'upcoming') {
+      baseList = curated.upcoming;
+    } else if (statusFilter === 'reported') {
+      baseList = curated.reported;
     }
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-      const fallback = buildFallbackSummary(item, targetLang);
-      setSummaryCache((prev) => ({ ...prev, [cacheKey]: fallback }));
-      return fallback;
-    }
+    return baseList.filter((item) => {
+      const matchesSector = sectorFilter === 'all' || item.sector === sectorFilter;
+      const q = searchQuery.trim().toLowerCase();
+      const matchesQuery =
+        !q ||
+        item.ticker.toLowerCase().includes(q) ||
+        item.company.toLowerCase().includes(q) ||
+        item.sector.toLowerCase().includes(q);
+      return matchesSector && matchesQuery;
+    });
+  }, [curated, statusFilter, sectorFilter, searchQuery]);
 
-    const langObj = LANGUAGES.find((l) => l.code === targetLang) || LANGUAGES[0];
-    setLoadingSummary(true);
-
-    try {
-      const prompt = [
-        `You are an institutional equity research analyst.`,
-        `Summarize the latest earnings release and earnings call highlights for S&P 500 company ${item.company} (${item.ticker}).`,
-        `Write the entire response in ${langObj.promptLang}.`,
-        `Use clear numbered sections:`,
-        `1. Executive Summary (3 concise bullets)`,
-        `2. Financial & Segment Highlights`,
-        `3. Forward Guidance & Outlook`,
-        `4. Management Tone & Analyst Q&A Takeaways`
-      ].join('\n');
-
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
-          apiKey
-        )}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            tools: [{ google_search: {} }]
-          })
-        }
-      );
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const text =
-        data?.candidates?.[0]?.content?.parts
-          ?.map((p) => p.text)
-          .filter(Boolean)
-          .join('\n') || buildFallbackSummary(item, targetLang);
-
-      setSummaryCache((prev) => ({ ...prev, [cacheKey]: text }));
-      return text;
-    } catch {
-      const fallback = buildFallbackSummary(item, targetLang);
-      setSummaryCache((prev) => ({ ...prev, [cacheKey]: fallback }));
-      return fallback;
-    } finally {
-      setLoadingSummary(false);
-    }
-  };
-
-  const handleOpenSummary = async (item, langOverride = null) => {
-    const langToUse = langOverride || summaryLang;
-    setActiveModalItem(item);
-    setCopied(false);
-    await generateEarningsSummary(item, langToUse, false);
-  };
-
-  const handleLiveTickerLookup = async (e) => {
+  const handleLiveLookup = async (e) => {
     e.preventDefault();
-    const rawTicker = searchQuery.trim().toUpperCase();
-    if (!rawTicker) return;
+    const rawQuery = searchQuery.trim();
+    if (!rawQuery) return;
 
-    const existing = items.find((i) => i.ticker === rawTicker);
-    if (existing) {
-      setStatusFilter('all');
-      setSelectedSector('ALL');
+    setErrorMsg('');
+    if (!apiKey) {
+      setErrorMsg(t.noApiKey);
       return;
     }
 
-    const newEntry = {
-      id: `${rawTicker}-${Date.now()}`,
-      ticker: rawTicker,
-      company: `${rawTicker} Inc.`,
-      sector: 'S&P 500',
-      date: '2027-01-22',
-      session: 'AMC',
-      status: 'upcoming',
-      epsEst: 'TBD',
-      epsAct: '-',
-      surprise: '-',
-      revEst: 'TBD',
-      expMove: '±5.0%'
-    };
-
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (apiKey) {
-      try {
-        const lookupPrompt = `Find the next or most recent earnings date, BMO or AMC session, EPS estimate, and revenue estimate for US ticker ${rawTicker}. Return a concise 1-line summary.`;
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
-            apiKey
-          )}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: lookupPrompt }] }],
-              tools: [{ google_search: {} }]
-            })
-          }
-        );
-        if (res.ok) {
-          const json = await res.json();
-          const info = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          const dateMatch = info.match(/\b(202[5-8]-\d{2}-\d{2})\b/);
-          if (dateMatch) newEntry.date = dateMatch[1];
-          if (/BMO|pre-market/i.test(info)) newEntry.session = 'BMO';
-        }
-      } catch {
-        // fallback entry kept
-      }
-    }
-
-    setItems((prev) => [newEntry, ...prev]);
-    setStatusFilter('all');
-    setSelectedSector('ALL');
-  };
-
-  const handleCopy = async (text) => {
+    setIsSearching(true);
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = `Find the latest or upcoming quarterly earnings release information for S&P 500 stock "${rawQuery}".
+Return ONLY a valid JSON object (no markdown fences) with these exact keys:
+{
+  "ticker": "UPPERCASE TICKER",
+  "company": "Company Name",
+  "sector": "GICS Sector in English (e.g. Information Technology, Financials, Health Care, Consumer Discretionary, Consumer Staples, Industrials, Energy, Communication Services, Utilities, Real Estate, Materials)",
+  "date": "YYYY-MM-DD",
+  "timing": "BMO" or "AMC",
+  "status": "upcoming" or "reported",
+  "epsEst": "string e.g. $1.65 or -",
+  "epsAct": "string e.g. $1.72 or -",
+  "revEst": "string e.g. $95.0B or -",
+  "revAct": "string e.g. $96.2B or -",
+  "surprise": "string e.g. +4.2% or -"
+}`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
+      });
+
+      const text = (response.text || '').trim();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Invalid JSON response');
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      const newRecord = {
+        id: `${parsed.ticker || rawQuery.toUpperCase()}-${parsed.date || Date.now()}`,
+        ticker: (parsed.ticker || rawQuery).toUpperCase(),
+        company: parsed.company || rawQuery.toUpperCase(),
+        sector: parsed.sector || 'Information Technology',
+        date: parsed.date || '2026-12-01',
+        timing: parsed.timing === 'BMO' ? 'BMO' : 'AMC',
+        status: parsed.status === 'reported' ? 'reported' : 'upcoming',
+        epsEst: parsed.epsEst || '-',
+        epsAct: parsed.epsAct || '-',
+        revEst: parsed.revEst || '-',
+        revAct: parsed.revAct || '-',
+        surprise: parsed.surprise || '-',
+        demoSummary: '',
+      };
+
+      setEarnings((prev) => [newRecord, ...prev]);
+      if (newRecord.status === 'upcoming' && statusFilter === 'reported') {
+        setStatusFilter('upcoming');
+      } else if (newRecord.status === 'reported' && statusFilter === 'upcoming') {
+        setStatusFilter('reported');
+      }
+    } catch (err) {
+      setErrorMsg('실시간 종목 조회 중 오류가 발생했습니다. 티커 철자를 확인한 뒤 다시 시도해 주세요.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
-  const activeCacheKey = activeModalItem ? `${activeModalItem.ticker}__${summaryLang}` : '';
-  const activeSummaryText = activeCacheKey ? summaryCache[activeCacheKey] || '' : '';
+  const handleOpenSummary = async (item) => {
+    setSelectedItem(item);
+    setSummaryText('');
+
+    if (!apiKey) {
+      setSummaryText(item.demoSummary || t.noApiKey);
+      return;
+    }
+
+    setIsSummarizing(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const langNames = {
+        ko: 'Korean',
+        en: 'English',
+        ja: 'Japanese',
+        zh: 'Simplified Chinese',
+        es: 'Spanish',
+      };
+      const targetLang = langNames[lang] || 'Korean';
+
+      const prompt = `Provide a concise 4-bullet earnings and earnings call summary for ${item.company} (${item.ticker}), earnings date ${item.date}, status: ${item.status}.
+Write the response strictly in ${targetLang}. Focus on revenue/EPS drivers, margin/guidance takeaways, and key management themes.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
+      });
+
+      setSummaryText((response.text || '').trim() || item.demoSummary || '');
+    } catch (err) {
+      setSummaryText(item.demoSummary || 'AI 요약 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedItem && apiKey) {
+      handleOpenSummary(selectedItem);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-20 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        {/* Header */}
+        <header className="mb-6 flex flex-col justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/90 p-5 sm:flex-row sm:items-center">
           <div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-emerald-400" />
-              <h1 className="text-lg font-bold tracking-tight">{t.title}</h1>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <TrendingUp className="h-6 w-6 text-emerald-400" />
+              <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+                {t.title}
+              </h1>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                {t.countBadge(curated.upcoming.length, curated.reported.length)}
+              </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">{t.subtitle}</p>
+            <p className="mt-1 text-sm text-slate-400">{t.subtitle}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5">
-              <Languages className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-slate-300">{t.appLang}:</span>
-              <select
-                value={appLang}
-                onChange={(e) => setAppLang(e.target.value)}
-                className="bg-transparent text-white font-medium focus:outline-none"
-              >
-                {LANGUAGES.map((l) => (
-                  <option key={l.code} value={l.code} className="bg-slate-900">
-                    {l.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex items-center gap-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5">
-              <MessageSquareText className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-slate-300">{t.summaryLang}:</span>
-              <select
-                value={summaryLang}
-                onChange={(e) => {
-                  const nextLang = e.target.value;
-                  setSummaryLang(nextLang);
-                  if (activeModalItem) {
-                    generateEarningsSummary(activeModalItem, nextLang, false);
-                  }
-                }}
-                className="bg-transparent text-white font-medium focus:outline-none"
-              >
-                {LANGUAGES.map((l) => (
-                  <option key={l.code} value={l.code} className="bg-slate-900">
-                    {l.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <button
-              type="button"
-              onClick={() => setItems([...INITIAL_EARNINGS])}
-              className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-3 py-1.5 transition"
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-slate-400" />
+            <select
+              aria-label="Language selector"
+              value={lang}
+              onChange={(e) => setLang(e.target.value)}
+              className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-emerald-400"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>{t.syncBtn}</span>
-            </button>
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="zh">简体中文</option>
+              <option value="es">Español</option>
+            </select>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-5">
-        {!import.meta.env.VITE_GEMINI_API_KEY && (
-          <div className="text-xs bg-amber-950/60 border border-amber-700/60 text-amber-200 px-3.5 py-2.5 rounded-lg">
-            {t.apiMissing}
+        {/* API Key Notice */}
+        {!apiKey && (
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-950/40 p-4 text-sm text-amber-200">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+            <p>{t.noApiKey}</p>
           </div>
         )}
 
-        <form onSubmit={handleLiveTickerLookup} className="flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t.searchPlaceholder}
-              className="w-full bg-slate-900 border border-slate-800 focus:border-sky-500 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none"
-            />
+        {errorMsg && (
+          <div className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-sm text-rose-200">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="h-5 w-5 shrink-0 text-rose-400" />
+              <span>{errorMsg}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMsg('')}
+              className="text-rose-300 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="submit"
-            className="bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
-          >
-            {t.lookupBtn}
-          </button>
-        </form>
+        )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 border border-slate-800 p-3 rounded-xl">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {[
-              { id: 'all', label: t.filterAll },
-              { id: 'upcoming', label: t.filterUpcoming },
-              { id: 'reported', label: t.filterReported },
-              { id: 'watchlist', label: t.filterWatchlist }
-            ].map((f) => (
+        {/* Search & Filter Controls */}
+        <section className="mb-6 space-y-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5">
+          <form onSubmit={handleLiveLookup} className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-400"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSearching}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:opacity-60"
+            >
+              {isSearching ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>{t.searching}</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  <span>{t.searchBtn}</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="flex flex-col justify-between gap-3 pt-1 md:flex-row md:items-center">
+            {/* Status Tabs */}
+            <div className="flex flex-wrap gap-2">
               <button
-                key={f.id}
                 type="button"
-                onClick={() => setStatusFilter(f.id)}
-                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${
-                  statusFilter === f.id
-                    ? 'bg-emerald-500 text-slate-950'
+                onClick={() => setStatusFilter('all')}
+                className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
+                  statusFilter === 'all'
+                    ? 'bg-white text-slate-950'
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                {f.label}
+                {t.all}
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setStatusFilter('upcoming')}
+                className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
+                  statusFilter === 'upcoming'
+                    ? 'bg-sky-400 text-slate-950'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                {t.upcoming}
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('reported')}
+                className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
+                  statusFilter === 'reported'
+                    ? 'bg-emerald-400 text-slate-950'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                {t.reported}
+              </button>
+            </div>
 
-            <select
-              value={selectedSector}
-              onChange={(e) => setSelectedSector(e.target.value)}
-              className="text-xs bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
-            >
-              {sectors.map((sec) => (
-                <option key={sec} value={sec} className="bg-slate-900">
-                  {sec === 'ALL' ? t.allSectors : sec}
-                </option>
-              ))}
-            </select>
+            {/* Sector Filter & Reset */}
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                aria-label="Sector filter"
+                value={sectorFilter}
+                onChange={(e) => setSectorFilter(e.target.value)}
+                className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 outline-none focus:border-emerald-400 sm:text-sm"
+              >
+                {sectors.map((sec) => (
+                  <option key={sec} value={sec}>
+                    {sec === 'all' ? t.allSectors : sec}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEarnings(INITIAL_EARNINGS);
+                  setStatusFilter('all');
+                  setSectorFilter('all');
+                  setSearchQuery('');
+                  setErrorMsg('');
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 sm:text-sm"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>{t.refreshAll}</span>
+              </button>
+            </div>
           </div>
+        </section>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setSortAsc((prev) => !prev)}
-              className="flex items-center gap-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700"
-            >
-              <ArrowUpDown className="w-3.5 h-3.5" />
-              <span>{t.colDate}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('timeline')}
-              className={`text-xs px-3 py-1.5 rounded-lg font-medium ${
-                viewMode === 'timeline'
-                  ? 'bg-sky-600 text-white'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              {t.viewTimeline}
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('screener')}
-              className={`text-xs px-3 py-1.5 rounded-lg font-medium ${
-                viewMode === 'screener'
-                  ? 'bg-sky-600 text-white'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              {t.viewScreener}
-            </button>
-          </div>
-        </div>
-
+        {/* Cards Grid */}
         {filteredItems.length === 0 ? (
-          <div className="text-center py-14 text-slate-400 text-sm bg-slate-900/50 border border-slate-800 rounded-xl">
-            {t.noResults}
-          </div>
-        ) : viewMode === 'timeline' ? (
-          <div className="space-y-6">
-            {groupedByDate.map(([dateStr, dayItems]) => (
-              <section key={dateStr} className="space-y-2.5">
-                <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
-                  <Calendar className="w-4 h-4" />
-                  <span>{dateStr}</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {dayItems.map((item) => {
-                    const starred = watchlist.includes(item.ticker);
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between gap-3 transition"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-base font-bold text-white">{item.ticker}</span>
-                              <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                                {item.session === 'BMO' ? t.bmo : t.amc}
-                              </span>
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded font-medium ${
-                                  item.status === 'reported'
-                                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/60'
-                                    : 'bg-sky-950 text-sky-300 border border-sky-800/60'
-                                }`}
-                              >
-                                {item.status === 'reported' ? t.reported : t.upcoming}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                              <Building2 className="w-3.5 h-3.5" />
-                              <span>
-                                {item.company} · {item.sector}
-                              </span>
-                            </p>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => toggleWatchlist(item.ticker)}
-                            aria-label="Toggle watchlist"
-                            className="p-1.5 rounded-lg hover:bg-slate-800 transition"
-                          >
-                            <Star
-                              className={`w-4 h-4 ${
-                                starred ? 'fill-amber-400 text-amber-400' : 'text-slate-500'
-                              }`}
-                            />
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-2 bg-slate-950/70 border border-slate-800/80 rounded-lg p-2.5 text-center">
-                          <div>
-                            <div className="text-[11px] text-slate-400">{t.epsEst}</div>
-                            <div className="text-xs font-semibold text-white mt-0.5">{item.epsEst}</div>
-                          </div>
-                          <div>
-                            <div className="text-[11px] text-slate-400">{t.epsAct}</div>
-                            <div className="text-xs font-semibold text-emerald-300 mt-0.5">
-                              {item.epsAct}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-[11px] text-slate-400">{t.revEst}</div>
-                            <div className="text-xs font-semibold text-white mt-0.5">{item.revEst}</div>
-                          </div>
-                          <div>
-                            <div className="text-[11px] text-slate-400">{t.expMove}</div>
-                            <div className="text-xs font-semibold text-amber-300 mt-0.5">
-                              {item.expMove}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenSummary(item)}
-                            className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-3 py-1.5 rounded-lg transition"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>{t.summaryBtn}</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+          <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-10 text-center">
+            <p className="text-base font-medium text-slate-300">{t.noResults}</p>
+            <p className="mt-1 text-sm text-slate-500">{t.addTickerHint}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto bg-slate-900 border border-slate-800 rounded-xl">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
-                <tr>
-                  <th className="py-3 px-3">{t.colCompany}</th>
-                  <th className="py-3 px-3">{t.colDate}</th>
-                  <th className="py-3 px-3">{t.colSession}</th>
-                  <th className="py-3 px-3">{t.colEpsEst}</th>
-                  <th className="py-3 px-3">{t.colEpsAct}</th>
-                  <th className="py-3 px-3">{t.colSurprise}</th>
-                  <th className="py-3 px-3">{t.colMove}</th>
-                  <th className="py-3 px-3 text-right">{t.colAction}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {filteredItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/50">
-                    <td className="py-3 px-3">
-                      <div className="font-bold text-white">{item.ticker}</div>
-                      <div className="text-slate-400">{item.company}</div>
-                    </td>
-                    <td className="py-3 px-3 text-slate-200">{item.date}</td>
-                    <td className="py-3 px-3 text-slate-300">
-                      {item.session === 'BMO' ? t.bmo : t.amc}
-                    </td>
-                    <td className="py-3 px-3 text-slate-200">{item.epsEst}</td>
-                    <td className="py-3 px-3 text-emerald-300">{item.epsAct}</td>
-                    <td className="py-3 px-3 text-sky-300">{item.surprise}</td>
-                    <td className="py-3 px-3 text-amber-300">{item.expMove}</td>
-                    <td className="py-3 px-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenSummary(item)}
-                        className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg font-medium"
-                      >
-                        <Sparkles className="w-3 h-3" />
-                        <span>{t.summaryBtn}</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </main>
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredItems.map((item) => {
+              const isUpcoming = item.status === 'upcoming';
+              return (
+                <article
+                  key={item.id}
+                  className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-5 transition hover:border-slate-700"
+                >
+                  <div>
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                        <Calendar className="h-3.5 w-3.5 text-emerald-400" />
+                        <span>{item.date}</span>
+                        <span>·</span>
+                        <span>{item.timing === 'BMO' ? t.timeBMO : t.timeAMC}</span>
+                      </div>
 
-      {activeModalItem && (
-        <div className="fixed inset-0 z-30 bg-black/75 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+                      {isUpcoming ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-300">
+                          <Clock className="h-3 w-3" />
+                          {t.statusUpcoming}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {t.statusReported}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="flex items-baseline gap-2">
+                        <h2 className="text-lg font-bold text-white">{item.ticker}</h2>
+                        <span className="truncate text-sm text-slate-300">{item.company}</span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.sector}</p>
+                    </div>
+
+                    <div className="mb-4 grid grid-cols-2 gap-2 rounded-xl bg-slate-950/80 p-3 text-xs">
+                      <div>
+                        <span className="text-slate-400">{t.epsEst}</span>
+                        <p className="mt-0.5 font-semibold text-slate-100">{item.epsEst}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">{t.epsAct}</span>
+                        <p className="mt-0.5 font-semibold text-emerald-300">{item.epsAct}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">{t.revEst}</span>
+                        <p className="mt-0.5 font-semibold text-slate-100">{item.revEst}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">{t.revAct}</span>
+                        <p className="mt-0.5 font-semibold text-emerald-300">{item.revAct}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 border-t border-slate-800 pt-3">
+                    <div className="text-xs">
+                      <span className="text-slate-400">{t.surprise}: </span>
+                      <span className="font-semibold text-amber-300">{item.surprise}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSummary(item)}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/25"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>{t.aiSummaryBtn}</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
+
+        {/* Footer Disclaimer */}
+        <footer className="mt-8 text-center text-xs text-slate-500">{t.disclaimer}</footer>
+      </div>
+
+      {/* AI Summary Modal */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-white">
-                  {activeModalItem.ticker} · {t.modalTitle}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>
-                    {activeModalItem.company} ({activeModalItem.date})
-                  </span>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-emerald-400" />
+                  <h3 className="text-lg font-bold text-white">{t.aiSummaryTitle}</h3>
+                </div>
+                <p className="mt-0.5 text-sm text-slate-400">
+                  {selectedItem.ticker} · {selectedItem.company} ({selectedItem.date})
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setActiveModalItem(null)}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
+                onClick={() => setSelectedItem(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="px-5 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-slate-950/60">
-              <div className="flex flex-wrap gap-1.5">
-                {LANGUAGES.map((lang) => (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => {
-                      setSummaryLang(lang.code);
-                      generateEarningsSummary(activeModalItem, lang.code, false);
-                    }}
-                    className={`text-xs px-2.5 py-1 rounded-md font-medium transition ${
-                      summaryLang === lang.code
-                        ? 'bg-sky-600 text-white'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                    }`}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => generateEarningsSummary(activeModalItem, summaryLang, true)}
-                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-md"
-                >
-                  {t.regenerate}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(activeSummaryText)}
-                  className="flex items-center gap-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? t.copied : t.copySummary}</span>
-                </button>
-              </div>
+            <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm leading-relaxed text-slate-200 whitespace-pre-line">
+              {isSummarizing ? (
+                <div className="flex items-center gap-2.5 text-slate-400">
+                  <RefreshCw className="h-4 w-4 animate-spin text-emerald-400" />
+                  <span>{t.aiLoading}</span>
+                </div>
+              ) : (
+                summaryText
+              )}
             </div>
 
-            <div className="p-5 overflow-y-auto text-sm leading-relaxed whitespace-pre-line text-slate-200">
-              {loadingSummary ? t.generating : activeSummaryText}
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+              >
+                {t.close}
+              </button>
             </div>
           </div>
         </div>
