@@ -313,45 +313,73 @@ function curateEarningsList(items) {
   };
 }
 
-// 무료 등급(Free Tier) 호환: google_search 도구를 제외해 429 차단을 방지
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// 무료 등급(Free Tier) 호환 + 503 일시 혼잡 시 자동 재시도 및 예비 무료 모델 자동 폴백
 async function generateGeminiText(apiKey, prompt) {
   const cleanKey = (apiKey || '').trim();
   if (!cleanKey) {
     throw new Error('VITE_GEMINI_API_KEY가 비어 있습니다.');
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(
-    cleanKey
-  )}`;
+  const candidateModels = [
+    'gemini-3.8-flash',
+    'gemini-3.8-flash',
+    'gemini-3.5-flash-lite',
+  ];
 
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.35,
-        maxOutputTokens: 1600,
-      },
-    }),
-  });
+  let lastError = null;
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const apiMessage = data?.error?.message || `HTTP ${res.status}`;
-    throw new Error(`Gemini API 오류 (${res.status}): ${apiMessage}`);
+  for (let i = 0; i < candidateModels.length; i += 1) {
+    const model = candidateModels[i];
+    if (i > 0) {
+      await sleep(1200);
+    }
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(
+      cleanKey
+    )}`;
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.35,
+            maxOutputTokens: 1600,
+          },
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const apiMessage = data?.error?.message || `HTTP ${res.status}`;
+        lastError = new Error(`Gemini API 오류 (${res.status}): ${apiMessage}`);
+        if (res.status === 503 || res.status === 429 || res.status === 404) {
+          continue;
+        }
+        throw lastError;
+      }
+
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const text = parts
+        .map((p) => p.text || '')
+        .join('\n')
+        .trim();
+
+      if (!text) {
+        lastError = new Error('Gemini API 응답 본문이 비어 있습니다.');
+        continue;
+      }
+      return text;
+    } catch (err) {
+      lastError = err;
+    }
   }
 
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  const text = parts
-    .map((p) => p.text || '')
-    .join('\n')
-    .trim();
-
-  if (!text) {
-    throw new Error('Gemini API 응답 본문이 비어 있습니다.');
-  }
-  return text;
+  throw lastError || new Error('AI 요약 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
 }
 
 export default function App() {
@@ -568,7 +596,7 @@ Write a detailed, well-structured earnings preview strictly in ${targetLang} cov
       setSummaryText(result);
     } catch (err) {
       setSummaryError(
-        `${err?.message || 'AI 요약 호출 실패'}\n\n※ 무료 등급 API 키가 아직 활성화되지 않았거나 분당 요청 한도(RPM)에 도달했을 수 있습니다. 1분 후 다시 시도하거나 Google AI Studio에서 무료 프로젝트 API 키 상태를 확인해 주세요.`
+        `${err?.message || 'AI 요약 호출 실패'}\n\n※ 구글 AI 서버가 일시적으로 혼잡하거나 무료 분당 호출 한도에 도달했습니다. 10~20초 후 [다시 심층 분석] 버튼을 눌러 주세요.`
       );
     } finally {
       setIsSummarizing(false);
