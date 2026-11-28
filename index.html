@@ -3,11 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>S&P 500 실시간 실적발표 허브</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>S&amp;P 500 Earnings</title>
+    <meta name="theme-color" content="#0b132b" />
+    <meta name="description" content="S&amp;P 500 실적발표 일정 및 다국어 AI 어닝콜 요약 앱" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/pwa-512x512.png" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
   </head>
-  <body class="bg-slate-950 text-slate-100">
+  <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.error('Service worker registration failed:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
