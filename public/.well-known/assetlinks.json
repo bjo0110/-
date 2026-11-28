@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "com.sp500.earningshub",
-        "sha256_cert_fingerprints": ["78:DD:47:0D:F5:99:0B:AD:1E:6F:3B:C5:03:7C:0A:B6:7D:DF:44:1C:EB:C7:ED:2B:95:AB:DA:9B:27:F0:69:26"]
+        "package_name": "app.vercel.pi_livid_46.twa",
+        "sha256_cert_fingerprints": ["9F:5C:EF:E7:D4:76:0F:C6:DE:BC:58:A6:72:9E:43:29:33:99:FF:38:2D:07:B1:86:71:EF:22:2A:C8:37:46:05"]
       }
     }]
