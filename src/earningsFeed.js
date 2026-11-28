@@ -1,4 +1,4 @@
-// Auto-updated earnings schedule feed (2026-11-27)
+// Auto-updated earnings schedule feed (2026-11-28)
 export const AUTO_EARNINGS_FEED = [
   {"id":"auto-MRVL-2026-12-01-1","ticker":"MRVL","company":"Marvell Technology","sector":"Information Technology","date":"2026-12-01","timing":"AMC","status":"upcoming","epsEst":"$0.79","epsAct":"-","revEst":"-","revAct":"-","surprise":"-"},
   {"id":"auto-OKTA-2026-12-01-2","ticker":"OKTA","company":"Okta, Inc.","sector":"Information Technology","date":"2026-12-01","timing":"AMC","status":"upcoming","epsEst":"$0.43","epsAct":"-","revEst":"-","revAct":"-","surprise":"-"},
