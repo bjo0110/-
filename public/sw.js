@@ -1,9 +1,15 @@
-const CACHE_NAME = 'sp500-earnings-hub-v1';
-const STATIC_ASSETS = ['/', '/index.html'];
+const CACHE_NAME = 'sp500-earnings-v1';
+const URLS_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => {})
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(URLS_TO_CACHE))
   );
   self.skipWaiting();
 });
@@ -27,12 +33,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
-        }
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
+      .catch(() => caches.match(event.request))
   );
 });
